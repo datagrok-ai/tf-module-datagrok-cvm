@@ -12,7 +12,7 @@ module "sg" {
   description = "${local.ecs_name} Datagrok ECS Security Group"
   vpc_id      = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
 
-  egress_with_cidr_blocks  = var.egress_rules
+  egress_with_cidr_blocks = var.egress_rules
   ingress_with_cidr_blocks = [
     {
       from_port   = 0
@@ -31,7 +31,7 @@ module "ecs" {
 
   cluster_configuration = {
     execute_command_configuration = {
-      logging           = "OVERRIDE"
+      logging = "OVERRIDE"
       log_configuration = {
         cloud_watch_log_group_name     = try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
         cloud_watch_encryption_enabled = var.custom_kms_key
@@ -77,7 +77,7 @@ resource "aws_secretsmanager_secret" "docker_hub" {
   count                   = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
   name                    = "${local.full_name}_docker_hub"
   description             = "Docker Hub token to download images"
-  kms_key_id              = var.custom_kms_key ? ( try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn ) : null
+  kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
   recovery_window_in_days = 7
 }
 resource "aws_iam_policy" "exec" {
@@ -85,13 +85,13 @@ resource "aws_iam_policy" "exec" {
   description = "Datagrok execution policy for ECS task"
 
   policy = jsonencode({
-    "Version"   = "2012-10-17",
+    "Version" = "2012-10-17",
     "Statement" = [
       {
         "Action"    = ["secretsmanager:GetSecretValue"],
         "Condition" = {},
         "Effect"    = "Allow",
-        "Resource"  = [
+        "Resource" = [
           try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
         ]
       },
@@ -100,7 +100,7 @@ resource "aws_iam_policy" "exec" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        "Effect"   = "Allow",
+        "Effect" = "Allow",
         "Resource" = [
           var.create_cloudwatch_log_group ? aws_cloudwatch_log_group.ecs[0].arn : var.cloudwatch_log_group_arn,
           "${var.create_cloudwatch_log_group ? aws_cloudwatch_log_group.ecs[0].arn : var.cloudwatch_log_group_arn}:log-stream:*"
@@ -113,12 +113,12 @@ resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Sid       = ""
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
         Principal = {
           Service = ["ecs-tasks.amazonaws.com", "ec2.amazonaws.com"]
         }
@@ -133,12 +133,12 @@ resource "aws_iam_role" "task" {
   name = "${local.ecs_name}_task"
 
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Sid       = ""
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
         Principal = {
           Service = ["ecs-tasks.amazonaws.com", "ec2.amazonaws.com"]
         }
@@ -155,14 +155,14 @@ resource "aws_ecs_task_definition" "grok_compute" {
 
   container_definitions = jsonencode([
     {
-      name    = "resolv_conf"
+      name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.internal",
         "datagrok.local"
       ]
-      essential        = false
-      image            = "docker/ecs-searchdomain-sidecar:1.0"
+      essential = false
+      image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -173,8 +173,8 @@ resource "aws_ecs_task_definition" "grok_compute" {
       }
     },
     {
-      name                  = "grok_compute"
-      image                 = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
+      name  = "grok_compute"
+      image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
       repositoryCredentials = {
         credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
       }
@@ -184,7 +184,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential        = true
+      essential = true
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -216,14 +216,14 @@ resource "aws_ecs_task_definition" "jkg" {
 
   container_definitions = jsonencode([
     {
-      name    = "resolv_conf"
+      name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.internal",
         "datagrok.local"
       ]
-      essential        = false
-      image            = "docker/ecs-searchdomain-sidecar:1.0"
+      essential = false
+      image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -234,8 +234,8 @@ resource "aws_ecs_task_definition" "jkg" {
       }
     },
     {
-      name                  = "jupyter_kernel_gateway"
-      image                 = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
+      name  = "jupyter_kernel_gateway"
+      image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
       repositoryCredentials = {
         credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
       }
@@ -245,7 +245,7 @@ resource "aws_ecs_task_definition" "jkg" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential        = true
+      essential = true
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -290,14 +290,14 @@ resource "aws_ecs_task_definition" "jn" {
 
   container_definitions = jsonencode([
     {
-      name    = "resolv_conf"
+      name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.internal",
         "datagrok.local"
       ]
-      essential        = false
-      image            = "docker/ecs-searchdomain-sidecar:1.0"
+      essential = false
+      image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -308,8 +308,8 @@ resource "aws_ecs_task_definition" "jn" {
       }
     },
     {
-      name                  = "jupyter_notebook"
-      image                 = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
+      name  = "jupyter_notebook"
+      image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
       repositoryCredentials = {
         credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
       }
@@ -319,7 +319,7 @@ resource "aws_ecs_task_definition" "jn" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential        = true
+      essential = true
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -354,14 +354,14 @@ resource "aws_ecs_task_definition" "h2o" {
 
   container_definitions = jsonencode([
     {
-      name    = "resolv_conf"
+      name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.internal",
         "datagrok.local"
       ]
-      essential        = false
-      image            = "docker/ecs-searchdomain-sidecar:1.0"
+      essential = false
+      image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -372,8 +372,8 @@ resource "aws_ecs_task_definition" "h2o" {
       }
     },
     {
-      name                  = "h2o"
-      image                 = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
+      name  = "h2o"
+      image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
       repositoryCredentials = {
         credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
       }
@@ -383,7 +383,7 @@ resource "aws_ecs_task_definition" "h2o" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential        = true
+      essential = true
       logConfiguration = {
         "LogDriver" : "awslogs",
         "Options" : {
@@ -815,7 +815,7 @@ resource "aws_iam_policy" "ec2" {
   description = "Datagrok execution policy for EC2 instance to run ECS tasks"
 
   policy = jsonencode({
-    "Version"   = "2012-10-17",
+    "Version" = "2012-10-17",
     "Statement" = [
       {
         "Action" = [
@@ -847,12 +847,12 @@ resource "aws_iam_role" "ec2" {
   name = "${local.ec2_name}_ec2"
 
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Sid       = ""
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
         Principal = {
           Service = ["ec2.amazonaws.com"]
         }
@@ -873,7 +873,7 @@ resource "aws_instance" "ec2" {
   ami           = try(length(var.ami_id) > 0, false) ? var.ami_id : data.aws_ami.aws_optimized_ecs[0].id
   instance_type = var.instance_type
   key_name      = try(length(var.key_pair_name) > 0, false) ? var.key_pair_name : aws_key_pair.ec2[0].key_name
-  user_data     = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
+  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     ecs_cluster_name = module.ecs.cluster_name
   }))
   availability_zone                    = data.aws_availability_zones.available.names[0]

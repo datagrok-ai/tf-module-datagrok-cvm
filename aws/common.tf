@@ -19,7 +19,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.grok_compute.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -31,7 +31,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 8888
       target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -43,7 +43,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -55,7 +55,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 8889
       target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -67,7 +67,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -79,7 +79,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -91,7 +91,7 @@ locals {
       backend_protocol = "HTTP"
       backend_port     = 54321
       target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check     = {
+      health_check = {
         enabled             = true
         interval            = 60
         unhealthy_threshold = 5
@@ -123,7 +123,7 @@ module "kms" {
 
   # Policy
   enable_default_policy = true
-  key_owners            = try(length(var.kms_owners) > 0, false) ? var.kms_owners : [
+  key_owners = try(length(var.kms_owners) > 0, false) ? var.kms_owners : [
     data.aws_caller_identity.current.arn
   ]
   key_administrators = try(length(var.kms_admins) > 0, false) ? var.kms_admins : [

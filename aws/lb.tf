@@ -89,15 +89,15 @@ module "acm" {
 
   subject_alternative_names = var.subject_alternative_names
 
-  create_route53_records  = var.route53_enabled
-  validate_certificate    = true
-  wait_for_validation     = true
+  create_route53_records = var.route53_enabled
+  validate_certificate   = true
+  wait_for_validation    = true
   validation_record_fqdns = var.route53_enabled ? null : distinct(
     [
-    for domain in concat(
-      [
-        var.domain_name
-      ],
+      for domain in concat(
+        [
+          var.domain_name
+        ],
       var.subject_alternative_names) : "_f36e88adbd7b4c92a11a58ffc7f6808e.${replace(domain, "*.", "")}"
     ]
   )
@@ -129,7 +129,7 @@ module "lb_ext" {
       protocol        = "HTTPS"
       certificate_arn = try(length(var.acm_cert_arn) > 0, false) ? var.acm_cert_arn : module.acm[0].acm_certificate_arn
       action_type     = "fixed-response"
-      fixed_response  = {
+      fixed_response = {
         status_code  = 204
         message_body = "No content. Try other endpoints for the URL: /jupyter, /notebook, /grok_compute."
         content_type = "text/plain"
@@ -154,7 +154,7 @@ module "lb_ext" {
       action_type = "redirect"
       port        = 80
       protocol    = "HTTP"
-      redirect    = {
+      redirect = {
         port        = 443
         protocol    = "HTTPS"
         status_code = "HTTP_301"
@@ -166,7 +166,7 @@ module "lb_ext" {
     {
       https_listener_index = 0
       priority             = 1
-      actions              = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 0
@@ -181,7 +181,7 @@ module "lb_ext" {
     {
       https_listener_index = 0
       priority             = 2
-      actions              = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 2
@@ -196,7 +196,7 @@ module "lb_ext" {
     {
       https_listener_index = 0
       priority             = 3
-      actions              = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 1
@@ -211,7 +211,7 @@ module "lb_ext" {
     {
       https_listener_index = 0
       priority             = 4
-      actions              = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 4
@@ -226,7 +226,7 @@ module "lb_ext" {
     {
       https_listener_index = 0
       priority             = 5
-      actions              = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 3
@@ -263,10 +263,10 @@ module "lb_int" {
 
   http_tcp_listeners = [
     {
-      action_type    = "redirect"
-      port           = 80
-      protocol       = "HTTP"
-      action_type    = "fixed-response"
+      action_type = "redirect"
+      port        = 80
+      protocol    = "HTTP"
+      action_type = "fixed-response"
       fixed_response = {
         status_code  = 204
         message_body = "No content. Try other endpoints for the URL: /jupyter, /notebook, /grok_compute."
@@ -289,7 +289,7 @@ module "lb_int" {
     {
       http_tcp_listener_index = 0
       priority                = 1
-      actions                 = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 0
@@ -304,7 +304,7 @@ module "lb_int" {
     {
       http_tcp_listener_index = 0
       priority                = 2
-      actions                 = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 2
@@ -319,7 +319,7 @@ module "lb_int" {
     {
       http_tcp_listener_index = 0
       priority                = 3
-      actions                 = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 1
@@ -334,7 +334,7 @@ module "lb_int" {
     {
       http_tcp_listener_index = 0
       priority                = 4
-      actions                 = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 4
@@ -349,7 +349,7 @@ module "lb_int" {
     {
       http_tcp_listener_index = 0
       priority                = 5
-      actions                 = [
+      actions = [
         {
           type               = "forward"
           target_group_index = 3
