@@ -175,6 +175,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
           "awslogs-stream-prefix" : "grok_compute"
         }
       }
+      memoryReservation = 100
     },
     {
       name  = "grok_compute"
@@ -236,6 +237,7 @@ resource "aws_ecs_task_definition" "jkg" {
           "awslogs-stream-prefix" : "jupyter_kernel_gateway"
         }
       }
+      memoryReservation = 100
     },
     {
       name  = "jupyter_kernel_gateway"
@@ -310,6 +312,7 @@ resource "aws_ecs_task_definition" "jn" {
           "awslogs-stream-prefix" : "jupyter_notebook"
         }
       }
+      memoryReservation = 100
     },
     {
       name  = "jupyter_notebook"
@@ -374,6 +377,7 @@ resource "aws_ecs_task_definition" "h2o" {
           "awslogs-stream-prefix" : "h2o"
         }
       }
+      memoryReservation = 100
     },
     {
       name  = "h2o"
