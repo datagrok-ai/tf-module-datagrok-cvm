@@ -296,13 +296,30 @@ jobs:
   tfsec:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [aws]
+
     permissions:
+      actions: read
       contents: read
       pull-requests: write
       security-events: write
+      statuses: write
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
+        if: ${{ github.event_name == 'pull_request' }}
+        name: Checkout PR branch
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/checkout@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        name: Checkout
+        with:
+          fetch-depth: 0
 
       - name: tfsec
         if: ${{ github.event_name == 'pull_request' }}
@@ -317,6 +334,16 @@ jobs:
         with:
           sarif_file: tfsec.sarif
           working_directory: ${{ matrix.provider }}
+          full_repo_scan: true
+          tfsec_version: v1.28.0
+
+      - name: 'Upload Artifact'
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: tfsec.sarif
+          path: tfsec.sarif
+          retention-days: 7
 
       - name: Upload SARIF file
         if: ${{ github.event_name != 'pull_request' }}
