@@ -1,9 +1,9 @@
 ## Usage
 
 ```hcl
-module "datagrok_cvm" {
+module "datagrok_core" {
   # We recommend to specify an exact tag as ref argument
-  source = "git@github.com:datagrok-ai/tf-module-datagrok-cvm.git//aws?ref=main"
+  source = "git@github.com:datagrok-ai/tf-module-datagrok-core.git//aws?ref=main"
 
   name                = "datagrok"
   environment         = "example"
@@ -11,9 +11,33 @@ module "datagrok_cvm" {
   docker_hub_user     = "exampleUser"
   docker_hub_password = "examplePassword"
 }
+
+module "datagrok_cvm" {
+  # We recommend to specify an exact tag as ref argument
+  source = "git@github.com:datagrok-ai/tf-module-datagrok-cvm.git//aws?ref=main"
+
+  name                             = "datagrok-cvm"
+  environment                      = "example"
+  domain_name                      = "datagrok.example"
+  vpc_id                           = module.datagrok_core.vpc_id
+  public_subnet_ids                = module.datagrok_core.public_subnets
+  private_subnet_ids               = module.datagrok_core.private_subnets
+  docker_hub_secret_arn            = module.datagrok_core.docker_hub_secret
+  create_route53_internal_zone     = false
+  route53_internal_zone            = module.datagrok_core.route_53_internal_zone
+  create_cloudwatch_log_group      = false
+  cloudwatch_log_group_arn         = module.datagrok_core.cloudwatch_log_group_arn
+  cloudwatch_log_group_name        = module.datagrok_core.cloudwatch_log_group_name
+  service_discovery_namespace      = module.datagrok_core.service_discovery_namespace
+  monitoring_email_alerts          = false
+  monitoring_email_alerts_datagrok = false
+  monitoring_sns_topic_arn         = module.datagrok_core.sns_topic
+  log_bucket                       = module.datagrok_core.log_bucket
+}
 ```
 
 <!-- BEGIN_TF_DOCS -->
+
 ## Requirements
 
 | Name | Version |
@@ -205,4 +229,5 @@ module "datagrok_cvm" {
 | <a name="output_vpc_flow_log_destination_arn"></a> [vpc\_flow\_log\_destination\_arn](#output\_vpc\_flow\_log\_destination\_arn) | The ARN of the destination for VPC Flow Logs |
 | <a name="output_vpc_flow_log_id"></a> [vpc\_flow\_log\_id](#output\_vpc\_flow\_log\_id) | The ID of the Flow Log resource |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
+
 <!-- END_TF_DOCS -->
