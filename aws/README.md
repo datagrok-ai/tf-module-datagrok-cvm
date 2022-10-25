@@ -110,7 +110,7 @@ module "datagrok_cvm" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_acm_cert_arn"></a> [acm\_cert\_arn](#input\_acm\_cert\_arn) | ACM certificate ARN for Datagrok endpoint. If it is not set it will be created | `string` | `null` | no |
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | The AMI ID for Datagrok EC2 instance. If it is not specified, the basic AWS ECS optimized AMI will be used. | `string` | `null` | no |
-| <a name="input_cidr"></a> [cidr](#input\_cidr) | n/a | `string` | `"10.0.0.0/17"` | no |
+| <a name="input_cidr"></a> [cidr](#input\_cidr) | The CIDR for the VPC. | `string` | `"10.0.0.0/17"` | no |
 | <a name="input_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#input\_cloudwatch\_log\_group\_arn) | The ARM of existing CloudWatch Log Group to use with Datagrok. | `string` | `null` | no |
 | <a name="input_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#input\_cloudwatch\_log\_group\_name) | The name of Datagrok CloudWatch Log Group. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
 | <a name="input_create_cloudwatch_log_group"></a> [create\_cloudwatch\_log\_group](#input\_create\_cloudwatch\_log\_group) | Specifies if the CloudWatch Log Group should be created. If it is set to false cloudwatch\_log\_group\_arn is required. | `bool` | `true` | no |
