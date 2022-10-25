@@ -18,16 +18,6 @@ output "public_subnets" {
   value       = try(module.vpc[0].public_subnets, var.public_subnet_ids)
 }
 
-output "database_subnets" {
-  description = "List of IDs of database subnets"
-  value       = try(module.vpc[0].database_subnets, var.data_subnet_ids)
-}
-
-output "database_subnet_group" {
-  description = "ID of database subnet group"
-  value       = try(module.vpc[0].database_subnet_group, var.database_subnet_group)
-}
-
 output "vpc_flow_log_id" {
   description = "The ID of the Flow Log resource"
   value       = try(module.vpc[0].vpc_flow_log_id, "")
