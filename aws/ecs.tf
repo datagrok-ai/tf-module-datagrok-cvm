@@ -181,7 +181,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       name  = "grok_compute"
       image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
       repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
+        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
       }
       dependsOn = [
         {
@@ -243,7 +243,7 @@ resource "aws_ecs_task_definition" "jkg" {
       name  = "jupyter_kernel_gateway"
       image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
       repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
+        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
       }
       dependsOn = [
         {
@@ -319,7 +319,7 @@ resource "aws_ecs_task_definition" "jn" {
       name  = "jupyter_notebook"
       image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
       repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
+        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
       }
       dependsOn = [
         {
@@ -384,7 +384,7 @@ resource "aws_ecs_task_definition" "h2o" {
       name  = "h2o"
       image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
       repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-2:766822877060:secret:dockerhubAccessToken-mZ5AxN"
+        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
       }
       dependsOn = [
         {
