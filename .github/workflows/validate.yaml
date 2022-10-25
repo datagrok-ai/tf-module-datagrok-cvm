@@ -294,12 +294,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   tfsec:
-    name: tfsec PR commenter
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
       pull-requests: write
+      security-events: write
 
     steps:
       - uses: actions/checkout@master
@@ -320,7 +320,6 @@ jobs:
 
       - name: Upload SARIF file
         if: ${{ github.event_name != 'pull_request' }}
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          # Path to SARIF file relative to the root of the repository
           sarif_file: tfsec.sarif
