@@ -24,7 +24,7 @@ variable "cidr" {
     condition     = length(regexall("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}/[0-9]{1,3}", var.cidr)) > 0
     error_message = "The cidr value must be a valid IP network."
   }
-  nullable = false
+  nullable    = false
   description = "The CIDR for the VPC."
 }
 
