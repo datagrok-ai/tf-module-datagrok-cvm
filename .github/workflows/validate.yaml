@@ -220,8 +220,6 @@ jobs:
               })
             }
 
-
-
   docs:
     runs-on: ubuntu-latest
 
@@ -321,6 +319,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ">=1.2.0"
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend=false
+        working-directory: ${{ matrix.provider }}
+
       - name: tfsec
         if: ${{ github.event_name == 'pull_request' }}
         uses: aquasecurity/tfsec-pr-commenter-action@v1.2.0
@@ -335,19 +342,12 @@ jobs:
           sarif_file: tfsec.sarif
           working_directory: ${{ matrix.provider }}
 
-      - name: tfsec
-        continue-on-error: true
-        uses: docker://aquasec/tfsec:latest
-        with:
-          entrypoint: tfsec
-          args: --soft-fail --out=/github/workspace/tfsec.sarif --format=sarif /github/workspace/${{ matrix.provider }}
-
       - name: 'Upload Artifact'
         if: ${{ github.event_name != 'pull_request' }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.provider }}/tfsec.sarif
-          path: ${{ matrix.provider }}/tfsec.sarif
+          name: ${{ matrix.provider }}_tfsec.sarif
+          path: tfsec.sarif
           retention-days: 7
 
       - name: Upload SARIF file
