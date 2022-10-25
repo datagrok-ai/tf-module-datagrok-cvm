@@ -162,8 +162,8 @@ resource "aws_ecs_task_definition" "grok_compute" {
       name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
-        "datagrok.internal",
-        "datagrok.local"
+        "datagrok.${var.name}.${var.environment}.internal",
+        "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
@@ -223,8 +223,8 @@ resource "aws_ecs_task_definition" "jkg" {
       name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
-        "datagrok.internal",
-        "datagrok.local"
+        "datagrok.${var.name}.${var.environment}.internal",
+        "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
@@ -297,8 +297,8 @@ resource "aws_ecs_task_definition" "jn" {
       name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
-        "datagrok.internal",
-        "datagrok.local"
+        "datagrok.${var.name}.${var.environment}.internal",
+        "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
@@ -361,8 +361,8 @@ resource "aws_ecs_task_definition" "h2o" {
       name = "resolv_conf"
       command = [
         "${data.aws_region.current.name}.compute.internal",
-        "datagrok.internal",
-        "datagrok.local"
+        "datagrok.${var.name}.${var.environment}.internal",
+        "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
@@ -419,7 +419,7 @@ resource "aws_ecs_task_definition" "h2o" {
 }
 resource "aws_service_discovery_private_dns_namespace" "datagrok" {
   count       = try(length(var.service_discovery_namespace) > 0, false) && var.ecs_launch_type == "FARGATE" ? 1 : 0
-  name        = "datagrok.local"
+  name        = "datagrok.${var.name}.${var.environment}.local"
   description = "Datagrok Service Discovery"
   vpc         = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
 }
