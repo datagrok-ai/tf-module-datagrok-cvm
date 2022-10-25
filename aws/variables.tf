@@ -464,7 +464,7 @@ variable "enable_route53_logging" {
 
 variable "grok_compute_container_memory_reservation" {
   type        = number
-  default     = 2048
+  default     = 1024
   nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Grok Compute container."
 }
@@ -520,7 +520,7 @@ variable "jkg_cpu" {
 
 variable "jn_container_memory_reservation" {
   type        = number
-  default     = 2048
+  default     = 1024
   nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container."
 }
@@ -548,7 +548,7 @@ variable "jn_cpu" {
 
 variable "h2o_container_memory_reservation" {
   type        = number
-  default     = 2048
+  default     = 1024
   nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the H2O container."
 }
