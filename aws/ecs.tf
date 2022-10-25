@@ -70,8 +70,8 @@ module "ecs" {
 #POLICY
 #}
 resource "aws_secretsmanager_secret_version" "docker_hub" {
-  count         = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
-  secret_id     = aws_secretsmanager_secret.docker_hub[0].id
+  count     = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
+  secret_id = aws_secretsmanager_secret.docker_hub[0].id
   secret_string = jsonencode({
     "username" : var.docker_hub_user,
     "password" : var.docker_hub_password
