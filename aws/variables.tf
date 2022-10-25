@@ -129,7 +129,7 @@ variable "lb_access_cidr_blocks" {
 variable "egress_rules" {
   description = "List of egress rules to create by name"
   type        = list(any)
-  default     = [
+  default = [
     {
       from_port   = 0
       to_port     = 65535
@@ -329,30 +329,30 @@ variable "cloudwatch_log_group_arn" {
 }
 
 variable "docker_grok_compute_tag" {
-  type     = string
-  default  = "latest"
-  nullable = false
+  type        = string
+  default     = "latest"
+  nullable    = false
   description = "Tag from Docker Hub for datagrok/grok_compute image"
 }
 
 variable "docker_jkg_tag" {
-  type     = string
-  default  = "latest"
-  nullable = false
+  type        = string
+  default     = "latest"
+  nullable    = false
   description = "Tag from Docker Hub for datagrok/jupyter_kernel_gateway image"
 }
 
 variable "docker_jn_tag" {
-  type     = string
-  default  = "latest"
-  nullable = false
+  type        = string
+  default     = "latest"
+  nullable    = false
   description = "Tag from Docker Hub for datagrok/jupyter_notebook image"
 }
 
 variable "docker_h2o_tag" {
-  type     = string
-  default  = "latest"
-  nullable = false
+  type        = string
+  default     = "latest"
+  nullable    = false
   description = "Tag from Docker Hub for datagrok/h2o image"
 }
 
@@ -462,16 +462,16 @@ variable "enable_route53_logging" {
 }
 
 variable "grok_compute_container_memory_reservation" {
-  type = number
-  default = 2048
-  nullable = false
+  type        = number
+  default     = 2048
+  nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Grok Compute container."
 }
 
 variable "grok_compute_container_cpu" {
-  type = number
-  default = 1024
-  nullable = false
+  type        = number
+  default     = 1024
+  nullable    = false
   description = "The number of cpu units the Amazon ECS container agent reserves for the Grok Compute container."
 }
 
@@ -490,16 +490,16 @@ variable "grok_compute_cpu" {
 }
 
 variable "jkg_container_memory_reservation" {
-  type = number
-  default = 2048
-  nullable = false
+  type        = number
+  default     = 2048
+  nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container."
 }
 
 variable "jkg_container_cpu" {
-  type = number
-  default = 1024
-  nullable = false
+  type        = number
+  default     = 1024
+  nullable    = false
   description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container."
 }
 
@@ -518,16 +518,16 @@ variable "jkg_cpu" {
 }
 
 variable "jn_container_memory_reservation" {
-  type = number
-  default = 2048
-  nullable = false
+  type        = number
+  default     = 2048
+  nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container."
 }
 
 variable "jn_container_cpu" {
-  type = number
-  default = 512
-  nullable = false
+  type        = number
+  default     = 512
+  nullable    = false
   description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container."
 }
 
@@ -546,16 +546,16 @@ variable "jn_cpu" {
 }
 
 variable "h2o_container_memory_reservation" {
-  type = number
-  default = 2048
-  nullable = false
+  type        = number
+  default     = 2048
+  nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the H2O container."
 }
 
 variable "h2o_container_cpu" {
-  type = number
-  default = 512
-  nullable = false
+  type        = number
+  default     = 512
+  nullable    = false
   description = "The number of cpu units the Amazon ECS container agent reserves for the H2O container."
 }
 
