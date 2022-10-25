@@ -16,6 +16,7 @@ locals {
 
   targets = [
     {
+      name             = "gc"
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.grok_compute.network_mode == "awsvpc" ? "ip" : "instance"
@@ -28,6 +29,7 @@ locals {
       }
     },
     {
+      name             = "jkg"
       backend_protocol = "HTTP"
       backend_port     = 8888
       target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
@@ -40,6 +42,7 @@ locals {
       }
     },
     {
+      name             = "jkgH"
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
@@ -52,6 +55,7 @@ locals {
       }
     },
     {
+      name             = "jn"
       backend_protocol = "HTTP"
       backend_port     = 8889
       target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
@@ -64,6 +68,7 @@ locals {
       }
     },
     {
+      name             = "jnH"
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
@@ -76,6 +81,7 @@ locals {
       }
     },
     {
+      name             = "h2oH"
       backend_protocol = "HTTP"
       backend_port     = 5005
       target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
@@ -88,6 +94,7 @@ locals {
       }
     },
     {
+      name             = "h2o"
       backend_protocol = "HTTP"
       backend_port     = 54321
       target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
