@@ -25,6 +25,7 @@ variable "cidr" {
     error_message = "The cidr value must be a valid IP network."
   }
   nullable = false
+  description = "The CIDR for the VPC."
 }
 
 variable "vpc_id" {
