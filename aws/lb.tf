@@ -117,7 +117,7 @@ module "lb_ext" {
 
   access_logs = var.enable_bucket_logging ? {
     bucket  = try(length(var.log_bucket) > 0, false) ? var.log_bucket : module.log_bucket[0].s3_bucket_id
-    prefix  = "lb-ext/"
+    prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
 
@@ -255,7 +255,7 @@ module "lb_int" {
 
   access_logs = var.enable_bucket_logging ? {
     bucket  = try(length(var.log_bucket) > 0, false) ? var.log_bucket : module.log_bucket[0].s3_bucket_id
-    prefix  = "lb-int/"
+    prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
 
@@ -370,6 +370,7 @@ resource "aws_cloudwatch_log_group" "external" {
   count             = var.enable_route53_logging ? 1 : 0
   name              = "/aws/route53/${aws_route53_zone.external[0].name}"
   retention_in_days = 7
+  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
 }
 
 data "aws_iam_policy_document" "external" {
@@ -404,6 +405,7 @@ resource "aws_cloudwatch_log_group" "internal" {
   count             = var.enable_route53_logging ? 1 : 0
   name              = "/aws/route53/${aws_route53_zone.internal[0].name}"
   retention_in_days = 7
+  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
 }
 
 data "aws_iam_policy_document" "internal" {

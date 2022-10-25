@@ -67,3 +67,13 @@ output "route_53_internal_zone" {
   description = "The ID of the Route53 internal zone for Datagrok"
   value       = try(aws_route53_record.internal.zone_id, var.route53_internal_zone)
 }
+
+output "sns_topic" {
+  description = "The ARN of the SNS topic from which messages will be sent"
+  value       = try(module.sns_topic.sns_topic_arn, var.monitoring_sns_topic_arn)
+}
+
+output "docker_hub_secret" {
+  description = "The ARN of the Secret for Docker Hub Authorisation"
+  value       = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_secret_arn)
+}

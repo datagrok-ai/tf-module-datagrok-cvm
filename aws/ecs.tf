@@ -2,6 +2,7 @@ resource "aws_cloudwatch_log_group" "ecs" {
   count             = var.create_cloudwatch_log_group ? 1 : 0
   name              = "/aws/ecs/${local.full_name}"
   retention_in_days = 7
+  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
   tags              = local.tags
 }
 module "sg" {
@@ -885,7 +886,7 @@ resource "aws_instance" "ec2" {
   source_dest_check                    = true
   instance_initiated_shutdown_behavior = "stop"
   iam_instance_profile                 = aws_iam_instance_profile.ec2_profile[0].name
-  monitoring                           = var.detailed_monitoring_enabled
+  monitoring                           = var.ec2_detailed_monitoring_enabled
   metadata_options {
     http_endpoint          = "enabled"
     http_tokens            = "optional"
@@ -901,8 +902,8 @@ resource "aws_instance" "ec2" {
     throughput  = try(length(var.root_volume_throughput) > 0, false) ? var.root_volume_throughput : null
     volume_size = 100
   }
-
-  tags = merge({ Name = local.ec2_name }, local.tags)
+  ebs_optimized = true
+  tags          = merge({ Name = local.ec2_name }, local.tags)
 
   lifecycle {
     ignore_changes = [ami, user_data]
