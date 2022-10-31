@@ -421,7 +421,7 @@ variable "monitoring" {
     create_sns_topic      = bool
     sns_topic_arn         = optional(string)
     email_alerts          = optional(bool, true)
-    email_recipients      = optional(list(string))
+    email_recipients      = optional(list(string), [])
     email_alerts_datagrok = bool
     slack_alerts          = optional(bool, false)
     slack_emoji           = optional(string)
