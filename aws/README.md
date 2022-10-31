@@ -177,6 +177,8 @@ module "datagrok_cvm" {
 
 | Name | Description |
 |------|-------------|
+| <a name="output_alb_external_arn"></a> [alb\_external\_arn](#output\_alb\_external\_arn) | The ARN of the external Application Load balancer |
+| <a name="output_alb_internal_arn"></a> [alb\_internal\_arn](#output\_alb\_internal\_arn) | The ARN of the external Application Load balancer |
 | <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log group |
 | <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name) | The name of the CloudWatch Log group |
 | <a name="output_docker_hub_secret"></a> [docker\_hub\_secret](#output\_docker\_hub\_secret) | The ARN of the Secret for Docker Hub Authorisation |
