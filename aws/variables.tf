@@ -378,6 +378,30 @@ variable "ec2_detailed_monitoring_enabled" {
   description = "Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand."
 }
 
+variable "monitoring" {
+  type = object({
+    alarms_enabled        = bool
+    create_sns_topic      = bool
+    sns_topic_arn         = optional(string)
+    email_alerts          = optional(bool, true)
+    email_recipients      = optional(list(string))
+    email_alerts_datagrok = bool
+    slack_alerts          = optional(bool, false)
+    slack_emoji           = optional(string)
+    slack_webhook_url     = optional(string)
+    slack_channel         = optional(string)
+    slack_username        = optional(string)
+  })
+  default = {
+    alarms_enabled        = true
+    create_sns_topic      = true
+    email_alerts          = true
+    email_alerts_datagrok = true
+    slack_alerts          = false
+  }
+  nullable = false
+}
+
 variable "monitoring_sns_topic_arn" {
   type        = string
   default     = null
