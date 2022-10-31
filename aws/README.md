@@ -172,6 +172,8 @@ module "datagrok_cvm" {
 | <a name="input_termination_protection"></a> [termination\_protection](#input\_termination\_protection) | Termination protection for the resources created by module. | `bool` | `true` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of VPC to place resources. If it is not specified, the VPC for Datagrok will be created. | `string` | `null` | no |
 | <a name="input_vpc_name"></a> [vpc\_name](#input\_vpc\_name) | The name of VPC to place resources. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
+| <a name="input_vpc_single_nat_gateway"></a> [vpc\_single\_nat\_gateway](#input\_vpc\_single\_nat\_gateway) | Should be true if you want to provision a single shared NAT Gateway across all of your private networks. We DO NOT recommend it for production usage. | `bool` | `false` | no |
+| <a name="input_vpc_subnets_count"></a> [vpc\_subnets\_count](#input\_vpc\_subnets\_count) | The count of subnets to create; one subnet per availability zone in the region. If there are fewer availability zones than the subnets count, the availability zones count will take precedence. We recommend a minimum of 3 for production usage. | `number` | `3` | no |
 
 ## Outputs
 
