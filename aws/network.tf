@@ -9,15 +9,15 @@ module "vpc" {
   cidr = var.cidr
 
   public_subnets = [
-  for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
+    for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
     cidrsubnet(var.cidr, 7, index(data.aws_availability_zones.available.names, zone) + 1)
   ]
   private_subnets = [
-  for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
+    for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
     cidrsubnet(var.cidr, 7, index(data.aws_availability_zones.available.names, zone) + 11)
   ]
   database_subnets = [
-  for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
+    for zone in slice(data.aws_availability_zones.available.names, 0, var.vpc_subnets_count) :
     cidrsubnet(var.cidr, 7, index(data.aws_availability_zones.available.names, zone) + 21)
   ]
 
