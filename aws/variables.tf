@@ -29,9 +29,9 @@ variable "cidr" {
 }
 
 variable "vpc_create" {
-  type     = bool
-  default  = true
-  nullable = false
+  type        = bool
+  default     = true
+  nullable    = false
   description = "Specifies if new VPC should be created."
 }
 
