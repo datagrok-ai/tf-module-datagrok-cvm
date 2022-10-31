@@ -267,6 +267,12 @@ variable "route53_internal_zone" {
   description = "Route53 internal hosted zone ID. If it is not set create_route53_internal_zone is required to be true"
 }
 
+variable "route53_external_zone" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Route53 external hosted zone ID. If it is not set create_route53_external_zone is required to be true"
+}
 
 variable "service_discovery_namespace" {
   type = object({
