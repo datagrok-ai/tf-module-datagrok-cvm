@@ -110,8 +110,8 @@ module "lb_ext" {
   security_groups            = [module.lb_ext_sg.security_group_id]
   drop_invalid_header_fields = true
 
-  access_logs = var.enable_bucket_logging ? {
-    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.log_bucket
+  access_logs = var.bucket_logging.enabled ? {
+    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
     prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
@@ -248,8 +248,8 @@ module "lb_int" {
   security_groups            = [module.lb_int_sg.security_group_id]
   drop_invalid_header_fields = true
 
-  access_logs = var.enable_bucket_logging ? {
-    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.log_bucket
+  access_logs = var.bucket_logging.enabled ? {
+    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
     prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
