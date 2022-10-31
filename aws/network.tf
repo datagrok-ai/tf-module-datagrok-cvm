@@ -1,7 +1,7 @@
 module "vpc" {
-  count   = try(length(var.vpc_id) > 0, false) ? 0 : 1
-  source  = "registry.terraform.io/terraform-aws-modules/vpc/aws"
-  version = "~> 3.14.2"
+  create_vpc = var.create_vpc
+  source     = "registry.terraform.io/terraform-aws-modules/vpc/aws"
+  version    = "~> 3.14.2"
 
   name = local.vpc_name
 

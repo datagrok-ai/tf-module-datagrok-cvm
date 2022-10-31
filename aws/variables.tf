@@ -28,6 +28,12 @@ variable "cidr" {
   description = "The CIDR for the VPC."
 }
 
+variable "create_vpc" {
+  type     = string
+  default  = true
+  nullable = false
+}
+
 variable "vpc_id" {
   type        = string
   default     = null
