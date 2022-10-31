@@ -50,7 +50,7 @@ resource "aws_cloudwatch_metric_alarm" "grok_compute_task_count" {
   alarm_name          = "${local.ecs_name}-grok_compute-task-count"
   comparison_operator = "LessThanThreshold"
   threshold           = "1"
-  evaluation_periods  = "1"
+  evaluation_periods  = "2"
   treat_missing_data  = "ignore"
   alarm_description   = "This metric monitors ${local.ecs_name} grok_compute ECS tasks count"
   alarm_actions = compact([
@@ -108,7 +108,7 @@ resource "aws_cloudwatch_metric_alarm" "jkg_task_count" {
   alarm_name          = "${local.ecs_name}-jkg-task-count"
   comparison_operator = "LessThanThreshold"
   threshold           = "1"
-  evaluation_periods  = "1"
+  evaluation_periods  = "2"
   treat_missing_data  = "ignore"
   alarm_description   = "This metric monitors ${local.ecs_name} Jupyter Kernel Gateway ECS tasks count"
   alarm_actions = compact([
@@ -166,7 +166,7 @@ resource "aws_cloudwatch_metric_alarm" "jn_task_count" {
   alarm_name          = "${local.ecs_name}-jn-task-count"
   comparison_operator = "LessThanThreshold"
   threshold           = "1"
-  evaluation_periods  = "1"
+  evaluation_periods  = "2"
   treat_missing_data  = "ignore"
   alarm_description   = "This metric monitors ${local.ecs_name} Jupyter Notebook ECS tasks count"
   alarm_actions = compact([
@@ -224,7 +224,7 @@ resource "aws_cloudwatch_metric_alarm" "h2o_task_count" {
   alarm_name          = "${local.ecs_name}-h2o-task-count"
   comparison_operator = "LessThanThreshold"
   threshold           = "1"
-  evaluation_periods  = "1"
+  evaluation_periods  = "2"
   treat_missing_data  = "ignore"
   alarm_description   = "This metric monitors ${local.ecs_name} H2O ECS tasks count"
   alarm_actions = compact([
