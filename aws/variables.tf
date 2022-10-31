@@ -28,10 +28,11 @@ variable "cidr" {
   description = "The CIDR for the VPC."
 }
 
-variable "create_vpc" {
-  type     = string
+variable "vpc_create" {
+  type     = bool
   default  = true
   nullable = false
+  description = "Specifies if new VPC should be created."
 }
 
 variable "vpc_id" {
@@ -196,6 +197,7 @@ variable "docker_hub_credentials" {
     condition     = (var.docker_hub_credentials.password != null && var.docker_hub_credentials.user != null) || var.docker_hub_credentials.secret_arn != null
     error_message = "The Docker Hub credentials should be specified. Either user-password pair or AWS Secret ARN."
   }
+  description = "Docker Hub credentials to download images.\n`create_secret` - Specifies if new secret with Docker Hub credentials will be created.\nEither user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified."
 }
 
 variable "tags" {
