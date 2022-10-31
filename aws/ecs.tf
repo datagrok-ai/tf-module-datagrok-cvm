@@ -70,7 +70,7 @@ module "ecs" {
 #POLICY
 #}
 resource "aws_secretsmanager_secret_version" "docker_hub" {
-  count     = var.docker_hub_credentials.create_secret ? 1 : 0
+  count     = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
   secret_id = aws_secretsmanager_secret.docker_hub[0].id
   secret_string = jsonencode({
     "username" : sensitive(var.docker_hub_credentials.user),
@@ -78,7 +78,7 @@ resource "aws_secretsmanager_secret_version" "docker_hub" {
   })
 }
 resource "aws_secretsmanager_secret" "docker_hub" {
-  count                   = var.docker_hub_credentials.create_secret ? 1 : 0
+  count                   = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
   name                    = "${local.full_name}_docker_hub"
   description             = "Docker Hub token to download images"
   kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
@@ -96,7 +96,7 @@ resource "aws_iam_policy" "exec" {
         "Condition" = {},
         "Effect"    = "Allow",
         "Resource" = [
-          var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
+          try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
         ]
       },
       {
@@ -181,7 +181,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       name  = "grok_compute"
       image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
       repositoryCredentials = {
-        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
+        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
       }
       dependsOn = [
         {
@@ -243,7 +243,7 @@ resource "aws_ecs_task_definition" "jkg" {
       name  = "jupyter_kernel_gateway"
       image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
       repositoryCredentials = {
-        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
+        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
       }
       dependsOn = [
         {
@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "jn" {
       name  = "jupyter_notebook"
       image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
       repositoryCredentials = {
-        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
+        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
       }
       dependsOn = [
         {
@@ -385,7 +385,7 @@ resource "aws_ecs_task_definition" "h2o" {
       name  = "h2o"
       image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
       repositoryCredentials = {
-        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
+        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
       }
       dependsOn = [
         {
