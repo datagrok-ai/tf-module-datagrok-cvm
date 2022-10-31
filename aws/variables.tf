@@ -83,21 +83,6 @@ variable "enable_flow_logs" {
   description = "Enable Flow logs for the VPC?"
 }
 
-variable "enable_bucket_logging" {
-  type        = bool
-  default     = true
-  nullable    = false
-  description = "Specifies whether Logging requests using server access logging for Datagrok S3 bucket are enabled. We recommend to set it to true for production stand."
-}
-
-
-variable "log_bucket" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The name of S3 logging bucket. If it is not specified, the S3 log bucket for Datagrok S3 bucket will be created."
-}
-
 variable "kms_key" {
   type        = string
   default     = null
@@ -195,29 +180,6 @@ variable "docker_hub_credentials" {
   }
 }
 
-variable "docker_hub_password" {
-  type        = string
-  default     = null
-  sensitive   = true
-  nullable    = true
-  description = "Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if docker_hub_secret_arn is specified"
-}
-
-variable "docker_hub_user" {
-  type        = string
-  default     = null
-  sensitive   = true
-  nullable    = true
-  description = "Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if docker_hub_secret_arn is specified"
-}
-
-variable "docker_hub_secret_arn" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using docker_hub_password variable"
-}
-
 variable "tags" {
   type        = map(string)
   default     = {}
@@ -287,6 +249,7 @@ variable "service_discovery_namespace" {
     condition     = (var.service_discovery_namespace.id != null && !var.service_discovery_namespace.create) || (var.service_discovery_namespace.id == null && var.service_discovery_namespace.create)
     error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
   }
+  description = "Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one."
 }
 
 variable "acm_cert_arn" {
@@ -420,6 +383,7 @@ variable "monitoring" {
     alarms_enabled        = bool
     create_sns_topic      = bool
     sns_topic_arn         = optional(string)
+    sns_topic_name        = optional(string)
     email_alerts          = optional(bool, true)
     email_recipients      = optional(list(string), [])
     email_alerts_datagrok = bool
@@ -436,84 +400,8 @@ variable "monitoring" {
     email_alerts_datagrok = true
     slack_alerts          = false
   }
-  nullable = false
-}
-
-variable "monitoring_sns_topic_arn" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "An ARN of the custom SNS topic for CloudWatch alarms."
-}
-
-variable "monitoring_email_recipients" {
-  type        = list(string)
-  default     = []
   nullable    = false
-  description = "List of email addresses to receive CloudWatch Alarms."
-}
-
-variable "monitoring_email_alerts_datagrok" {
-  type        = bool
-  default     = true
-  nullable    = false
-  description = "Specifies whether CloudWatch Alarms are forwarded to Datagrok Email. We recommend to set it to true for production stand."
-}
-
-variable "monitoring_slack_emoji" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "A custom emoji that will appear on Slack messages from CloudWatch alarms."
-}
-
-variable "monitoring_email_alerts" {
-  type        = bool
-  default     = true
-  nullable    = false
-  description = "Specifies whether CloudWatch Alarms are forwarded to Email. We recommend to set it to true for production stand."
-}
-
-variable "monitoring_slack_webhook_url" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The URL of Slack webhook for CloudWatch alarm notifications."
-}
-
-variable "monitoring_slack_channel" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The name of the channel in Slack for notifications from CloudWatch alarms."
-}
-
-variable "monitoring_slack_username" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The username that will appear on Slack messages from CloudWatch alarms."
-}
-
-variable "monitoring_alarms" {
-  type        = bool
-  default     = true
-  nullable    = false
-  description = "Specifies whether CloudWatch Alarms are enabled. We recommend to set it to true for production stand."
-}
-
-variable "monitoring_slack_alerts" {
-  type        = bool
-  default     = false
-  nullable    = false
-  description = "Specifies whether CloudWatch Alarms are forwarded to Slack. We recommend to set it to true for production stand."
-}
-
-variable "sns_topic_name" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The name of Datagrok SNS topic. If it is not specified, the name along with the environment will be used."
+  description = "Monitoring object.\n`alarms_enabled` - Specifies whether CloudWatch Alarms are enabled. We recommend to set it to true for production stand.\n`create_sns_topic` - Specifies whether Datagrok SNS topic should be created. If it is set to false, `sns_topic_arn` is required.\n`sns_topic_name` - The name of Datagrok SNS topic. If it is not specified, the name along with the environment will be used.\n`sns_topic_arn` - An ARN of the custom SNS topic for CloudWatch alarms.\n`email_alerts` - Specifies whether CloudWatch Alarms are forwarded to Email. We recommend to set it to true for production stand.\n`email_recipients` - List of email addresses to receive CloudWatch Alarms.\n`email_alerts_datagrok` - Specifies whether CloudWatch Alarms are forwarded to Datagrok Email. We recommend to set it to true for production stand.\n`slack_alerts` - Specifies whether CloudWatch Alarms are forwarded to Slack. We recommend to set it to true for production stand.\n`slack_emoji` - A custom emoji that will appear on Slack messages from CloudWatch alarms.\n`slack_webhook_url` - The URL of Slack webhook for CloudWatch alarm notifications.\n`slack_channel` - The name of the channel in Slack for notifications from CloudWatch alarms.\n`slack_username` - The username that will appear on Slack messages from CloudWatch alarms."
 }
 
 variable "enable_route53_logging" {
@@ -650,4 +538,5 @@ variable "bucket_logging" {
     condition     = !var.bucket_logging.enabled || (var.bucket_logging.enabled && ((var.bucket_logging.log_bucket != null && !var.bucket_logging.create_log_bucket) || (var.bucket_logging.log_bucket == null && var.bucket_logging.create_log_bucket)))
     error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
   }
+  description = "Bucket Logging object.\n `enabled` - Specifies whether Logging requests using server access logging for Datagrok S3 bucket are enabled. We recommend to set it to true for production stand.\n`create_log_bucket` - Specifies whether the S3 log bucket will be created.\n`log_bucket` - The name of S3 logging bucket. If it is not specified, the S3 log bucket for Datagrok S3 bucket will be created."
 }

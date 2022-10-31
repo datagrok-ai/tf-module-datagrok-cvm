@@ -10,11 +10,9 @@ locals {
   ecs_name       = try(length(var.ecs_name) > 0, false) ? var.ecs_name : "${var.name}-${var.environment}"
   lb_name        = try(length(var.lb_name) > 0, false) ? var.lb_name : "${var.name}-${var.environment}"
   ec2_name       = try(length(var.ec2_name) > 0, false) ? var.ec2_name : "${var.name}-${var.environment}"
-  sns_topic_name = try(length(var.sns_topic_name) > 0, false) ? var.sns_topic_name : "${var.name}-${var.environment}"
+  sns_topic_name = var.monitoring.sns_topic_name != null ? var.monitoring.sns_topic_name : "${var.name}-${var.environment}"
   r53_record     = var.route53_enabled ? try(length(var.route53_record_name) > 0, false) ? "${var.route53_record_name}.${var.domain_name}" : "${var.name}-${var.environment}.${var.domain_name}" : ""
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
-
-  log_bucket = var.bucket_logging.enabled && var.bucket_logging.log_bucket != null ? var.bucket_logging.log_bucket : module.log_bucket.s3_bucket_id
 
   targets = [
     {
