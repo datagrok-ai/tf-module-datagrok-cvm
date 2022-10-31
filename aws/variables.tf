@@ -573,3 +573,20 @@ variable "h2o_cpu" {
   nullable    = false
   description = "Number of cpu units used by the H2O FARGATE task. The hard limit of CPU units to present for the task."
 }
+
+variable "bucket_logging" {
+  type = object({
+    log_bucket        = optional(string)
+    create_log_bucket = bool
+    enabled           = bool
+  })
+  default = {
+    enabled           = true
+    create_log_bucket = true
+  }
+  nullable = false
+  validation {
+    condition     = !var.bucket_logging.enabled || (var.bucket_logging.enabled && ((var.bucket_logging.log_bucket != null && !var.bucket_logging.create_log_bucket) || (var.bucket_logging.log_bucket == null && var.bucket_logging.create_log_bucket)))
+    error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
+  }
+}

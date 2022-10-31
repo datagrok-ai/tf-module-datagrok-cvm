@@ -14,6 +14,8 @@ locals {
   r53_record     = var.route53_enabled ? try(length(var.route53_record_name) > 0, false) ? "${var.route53_record_name}.${var.domain_name}" : "${var.name}-${var.environment}.${var.domain_name}" : ""
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
 
+  log_bucket = var.bucket_logging.enabled && var.bucket_logging.log_bucket != null ? var.bucket_logging.log_bucket : module.log_bucket.s3_bucket_id
+
   targets = [
     {
       name             = "gc"

@@ -116,7 +116,7 @@ module "lb_ext" {
   drop_invalid_header_fields = true
 
   access_logs = var.enable_bucket_logging ? {
-    bucket  = try(length(var.log_bucket) > 0, false) ? var.log_bucket : module.log_bucket[0].s3_bucket_id
+    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.log_bucket
     prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
@@ -254,7 +254,7 @@ module "lb_int" {
   drop_invalid_header_fields = true
 
   access_logs = var.enable_bucket_logging ? {
-    bucket  = try(length(var.log_bucket) > 0, false) ? var.log_bucket : module.log_bucket[0].s3_bucket_id
+    bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.log_bucket
     prefix  = "lb"
     enabled = true
   } : { bucket = "", enabled = false }
