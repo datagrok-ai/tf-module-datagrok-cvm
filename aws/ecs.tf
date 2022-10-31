@@ -424,7 +424,7 @@ resource "aws_ecs_task_definition" "h2o" {
   requires_compatibilities = [var.ecs_launch_type]
 }
 resource "aws_service_discovery_private_dns_namespace" "datagrok" {
-  count       = try(length(var.service_discovery_namespace) > 0, false) && var.ecs_launch_type == "FARGATE" ? 1 : 0
+  count       = var.service_discovery_namespace.create && var.ecs_launch_type == "FARGATE" ? 1 : 0
   name        = "datagrok.${var.name}.${var.environment}.local"
   description = "Datagrok Service Discovery"
   vpc         = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
@@ -435,7 +435,7 @@ resource "aws_service_discovery_service" "grok_compute" {
   description = "Datagrok CVM Grok Compute service discovery entry"
 
   dns_config {
-    namespace_id = try(length(var.service_discovery_namespace) > 0, false) ? var.service_discovery_namespace : aws_service_discovery_private_dns_namespace.datagrok[0].id
+    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
 
     dns_records {
       ttl  = 10
@@ -455,7 +455,7 @@ resource "aws_service_discovery_service" "jkg" {
   description = "Datagrok CVM JKG service discovery entry"
 
   dns_config {
-    namespace_id = try(length(var.service_discovery_namespace) > 0, false) ? var.service_discovery_namespace : aws_service_discovery_private_dns_namespace.datagrok[0].id
+    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
 
     dns_records {
       ttl  = 10
@@ -475,7 +475,7 @@ resource "aws_service_discovery_service" "jn" {
   description = "Datagrok CVM JN service discovery entry"
 
   dns_config {
-    namespace_id = try(length(var.service_discovery_namespace) > 0, false) ? var.service_discovery_namespace : aws_service_discovery_private_dns_namespace.datagrok[0].id
+    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
 
     dns_records {
       ttl  = 10
@@ -495,7 +495,7 @@ resource "aws_service_discovery_service" "h2o" {
   description = "Datagrok CVM H2O service discovery entry"
 
   dns_config {
-    namespace_id = try(length(var.service_discovery_namespace) > 0, false) ? var.service_discovery_namespace : aws_service_discovery_private_dns_namespace.datagrok[0].id
+    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
 
     dns_records {
       ttl  = 10

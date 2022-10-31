@@ -267,11 +267,20 @@ variable "route53_internal_zone" {
   description = "Route53 internal hosted zone ID. If it is not set create_route53_internal_zone is required to be true"
 }
 
+
 variable "service_discovery_namespace" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "Service discovery namespace ID for FARGATE tasks. If it is not set it will be created"
+  type = object({
+    create = bool
+    id     = optional(string)
+  })
+  default = {
+    create = true
+  }
+  nullable = false
+  validation {
+    condition     = (var.service_discovery_namespace.id != null && !var.service_discovery_namespace.create) || (var.service_discovery_namespace.id == null && var.service_discovery_namespace.create)
+    error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
+  }
 }
 
 variable "acm_cert_arn" {
