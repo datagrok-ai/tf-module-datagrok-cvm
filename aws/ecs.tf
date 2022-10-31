@@ -70,15 +70,15 @@ module "ecs" {
 #POLICY
 #}
 resource "aws_secretsmanager_secret_version" "docker_hub" {
-  count     = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
+  count     = var.docker_hub_credentials.create_secret ? 1 : 0
   secret_id = aws_secretsmanager_secret.docker_hub[0].id
   secret_string = jsonencode({
-    "username" : var.docker_hub_user,
-    "password" : var.docker_hub_password
+    "username" : sensitive(var.docker_hub_credentials.user),
+    "password" : sensitive(var.docker_hub_credentials.password)
   })
 }
 resource "aws_secretsmanager_secret" "docker_hub" {
-  count                   = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
+  count                   = var.docker_hub_credentials.create_secret ? 1 : 0
   name                    = "${local.full_name}_docker_hub"
   description             = "Docker Hub token to download images"
   kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
@@ -96,7 +96,7 @@ resource "aws_iam_policy" "exec" {
         "Condition" = {},
         "Effect"    = "Allow",
         "Resource" = [
-          try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
+          var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
         ]
       },
       {
@@ -181,7 +181,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       name  = "grok_compute"
       image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
       repositoryCredentials = {
-        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
+        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
       }
       dependsOn = [
         {
@@ -243,7 +243,7 @@ resource "aws_ecs_task_definition" "jkg" {
       name  = "jupyter_kernel_gateway"
       image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
       repositoryCredentials = {
-        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
+        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
       }
       dependsOn = [
         {
@@ -279,7 +279,8 @@ resource "aws_ecs_task_definition" "jkg" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
         size_in_gib : 50
-    }] : []
+      }
+    ] : []
     content {
       size_in_gib = ephemeral_storage.value["size_in_gib"]
     }
@@ -319,7 +320,7 @@ resource "aws_ecs_task_definition" "jn" {
       name  = "jupyter_notebook"
       image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
       repositoryCredentials = {
-        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
+        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
       }
       dependsOn = [
         {
@@ -384,7 +385,7 @@ resource "aws_ecs_task_definition" "h2o" {
       name  = "h2o"
       image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
       repositoryCredentials = {
-        credentialsParameter = try(length(var.docker_hub_secret_arn) > 0, false) ? var.docker_hub_secret_arn : aws_secretsmanager_secret.docker_hub[0].arn
+        credentialsParameter = var.docker_hub_credentials.create_secret ? aws_secretsmanager_secret.docker_hub[0].arn : var.docker_hub_credentials.secret_arn
       }
       dependsOn = [
         {
@@ -589,7 +590,8 @@ resource "aws_ecs_service" "grok_compute" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
         registry_arn : aws_service_discovery_service.grok_compute[0].arn
-    }] : []
+      }
+    ] : []
     content {
       registry_arn = service_registries.value["registry_arn"]
     }
@@ -607,10 +609,12 @@ resource "aws_ecs_service" "grok_compute" {
   }
 
   dynamic "network_configuration" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [{
-      subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
-      security_groups : [module.sg.security_group_id]
-    }] : []
+    for_each = var.ecs_launch_type == "FARGATE" ? [
+      {
+        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        security_groups : [module.sg.security_group_id]
+      }
+    ] : []
     content {
       subnets          = network_configuration.value["subnets"]
       security_groups  = network_configuration.value["security_groups"]
@@ -637,9 +641,11 @@ resource "aws_ecs_service" "jkg" {
   #  iam_role = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
 
   dynamic "service_registries" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [{
-      registry_arn : aws_service_discovery_service.jkg[0].arn
-    }] : []
+    for_each = var.ecs_launch_type == "FARGATE" ? [
+      {
+        registry_arn : aws_service_discovery_service.jkg[0].arn
+      }
+    ] : []
     content {
       registry_arn = service_registries.value["registry_arn"]
     }
@@ -667,10 +673,12 @@ resource "aws_ecs_service" "jkg" {
   }
 
   dynamic "network_configuration" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [{
-      subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
-      security_groups : [module.sg.security_group_id]
-    }] : []
+    for_each = var.ecs_launch_type == "FARGATE" ? [
+      {
+        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        security_groups : [module.sg.security_group_id]
+      }
+    ] : []
     content {
       subnets          = network_configuration.value["subnets"]
       security_groups  = network_configuration.value["security_groups"]
@@ -700,7 +708,8 @@ resource "aws_ecs_service" "jn" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
         registry_arn : aws_service_discovery_service.jn[0].arn
-    }] : []
+      }
+    ] : []
     content {
       registry_arn = service_registries.value["registry_arn"]
     }
@@ -732,7 +741,8 @@ resource "aws_ecs_service" "jn" {
       {
         subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
         security_groups : [module.sg.security_group_id]
-    }] : []
+      }
+    ] : []
     content {
       subnets          = network_configuration.value["subnets"]
       security_groups  = network_configuration.value["security_groups"]
@@ -762,7 +772,8 @@ resource "aws_ecs_service" "h2o" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
         registry_arn : aws_service_discovery_service.h2o[0].arn
-    }] : []
+      }
+    ] : []
     content {
       registry_arn = service_registries.value["registry_arn"]
     }
@@ -794,7 +805,8 @@ resource "aws_ecs_service" "h2o" {
       {
         subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
         security_groups : [module.sg.security_group_id]
-    }] : []
+      }
+    ] : []
     content {
       subnets          = network_configuration.value["subnets"]
       security_groups  = network_configuration.value["security_groups"]

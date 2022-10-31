@@ -173,6 +173,22 @@ variable "ecs_launch_type" {
   description = "Launch type for datagrok containers. FARGATE and EC2 are available options. We recommend FARGATE for production stand."
 }
 
+variable "docker_hub_credentials" {
+  type = object({
+    create_secret = bool
+    password      = optional(string)
+    user          = optional(string)
+    secret_arn    = optional(string)
+  })
+  default = {
+    create_secret = true
+  }
+  validation {
+    condition     = (var.docker_hub_credentials.password != null && var.docker_hub_credentials.user != null) || var.docker_hub_credentials.secret_arn != null
+    error_message = "The Docker Hub credentials should be specified. Either user-password pair or AWS Secret ARN."
+  }
+}
+
 variable "docker_hub_password" {
   type        = string
   default     = null
