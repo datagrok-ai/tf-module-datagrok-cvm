@@ -48,12 +48,12 @@ output "service_discovery_namespace" {
   value       = try(aws_service_discovery_private_dns_namespace.datagrok[0].id, "")
 }
 
-output "route_53_external_zone" {
+output "route53_external_zone" {
   description = "The ID of the Route53 public zone for Datagrok"
   value       = try(aws_route53_record.external[0].zone_id, "")
 }
 
-output "route_53_internal_zone" {
+output "route53_internal_zone" {
   description = "The ID of the Route53 internal zone for Datagrok"
   value       = try(aws_route53_record.internal.zone_id, var.route53_internal_zone)
 }

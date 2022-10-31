@@ -1,9 +1,9 @@
 resource "random_pet" "this" {
-  count  = var.enable_bucket_logging && !try(length(var.log_bucket) > 0, false) ? 1 : 0
+  count  = var.bucket_logging.enabled && var.bucket_logging.create_log_bucket ? 1 : 0
   length = 2
 }
 module "log_bucket" {
-  create_bucket = var.enable_bucket_logging && !try(length(var.log_bucket) > 0, false)
+  create_bucket = var.bucket_logging.enabled && var.bucket_logging.create_log_bucket
   source        = "registry.terraform.io/terraform-aws-modules/s3-bucket/aws"
   version       = "~> 3.3.0"
 
