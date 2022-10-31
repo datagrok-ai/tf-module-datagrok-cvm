@@ -41,6 +41,24 @@ variable "vpc_id" {
   description = "The ID of VPC to place resources. If it is not specified, the VPC for Datagrok will be created."
 }
 
+variable "vpc_single_nat_gateway" {
+  description = "Should be true if you want to provision a single shared NAT Gateway across all of your private networks. We DO NOT recommend it for production usage."
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
+variable "vpc_subnets_count" {
+  description = "The count of subnets to create; one subnet per availability zone in the region. If there are fewer availability zones than the subnets count, the availability zones count will take precedence. We recommend a minimum of 3 for production usage."
+  type        = number
+  default     = 3
+  validation {
+    condition     = var.vpc_subnets_count > 2
+    error_message = "Minimum count of 2 subnets are allowed."
+  }
+  nullable = false
+}
+
 variable "public_subnet_ids" {
   type    = list(string)
   default = []
