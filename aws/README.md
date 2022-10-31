@@ -119,7 +119,7 @@ module "datagrok_cvm" {
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br>    create_secret = bool<br>    password      = optional(string)<br>    user          = optional(string)<br>    secret_arn    = optional(string)<br>  })</pre> | <pre>{<br>  "create_secret": true<br>}</pre> | no |
 | <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker Hub for datagrok/jupyter\_kernel\_gateway image | `string` | `"latest"` | no |
 | <a name="input_docker_jn_tag"></a> [docker\_jn\_tag](#input\_docker\_jn\_tag) | Tag from Docker Hub for datagrok/jupyter\_notebook image | `string` | `"latest"` | no |
-| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53. and to create ACM certificates. | `string` | `""` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
 | <a name="input_ecs_cluster_insights"></a> [ecs\_cluster\_insights](#input\_ecs\_cluster\_insights) | Specifies whether Monitoring Insights for ECS cluster are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
@@ -184,17 +184,27 @@ module "datagrok_cvm" {
 | <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log group |
 | <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name) | The name of the CloudWatch Log group |
 | <a name="output_docker_hub_secret"></a> [docker\_hub\_secret](#output\_docker\_hub\_secret) | The ARN of the Secret for Docker Hub Authorisation |
+| <a name="output_domain_name"></a> [domain\_name](#output\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. |
+| <a name="output_ec2_name"></a> [ec2\_name](#output\_ec2\_name) | The EC2 instance name of a stand. |
+| <a name="output_ecs_name"></a> [ecs\_name](#output\_ecs\_name) | The ECS Cluster name of a stand. |
+| <a name="output_environment"></a> [environment](#output\_environment) | The environment of a stand. |
+| <a name="output_full_name"></a> [full\_name](#output\_full\_name) | The full name of a stand. |
+| <a name="output_lb_name"></a> [lb\_name](#output\_lb\_name) | The Load Balancer name of a stand. |
 | <a name="output_log_bucket"></a> [log\_bucket](#output\_log\_bucket) | The ID of the S3 bucket for logs |
+| <a name="output_name"></a> [name](#output\_name) | The name for a stand. |
 | <a name="output_private_subnets"></a> [private\_subnets](#output\_private\_subnets) | List of IDs of private subnets |
 | <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | List of IDs of public subnets |
+| <a name="output_r53_record"></a> [r53\_record](#output\_r53\_record) | The Route53 record for a stand. |
 | <a name="output_route53_external_cloudwatch_log_group_arn"></a> [route53\_external\_cloudwatch\_log\_group\_arn](#output\_route53\_external\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log group for External Route53 Zone |
 | <a name="output_route53_external_cloudwatch_log_group_name"></a> [route53\_external\_cloudwatch\_log\_group\_name](#output\_route53\_external\_cloudwatch\_log\_group\_name) | The name of the CloudWatch Log group for External Route53 Zone |
 | <a name="output_route53_external_zone"></a> [route53\_external\_zone](#output\_route53\_external\_zone) | The ID of the Route53 public zone for Datagrok |
 | <a name="output_route53_internal_zone"></a> [route53\_internal\_zone](#output\_route53\_internal\_zone) | The ID of the Route53 internal zone for Datagrok |
 | <a name="output_service_discovery_namespace"></a> [service\_discovery\_namespace](#output\_service\_discovery\_namespace) | The ID of the CloudMap for Datagrok |
 | <a name="output_sns_topic"></a> [sns\_topic](#output\_sns\_topic) | The ARN of the SNS topic from which messages will be sent |
+| <a name="output_sns_topic_name"></a> [sns\_topic\_name](#output\_sns\_topic\_name) | The SNS Topic name of a stand. |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
 | <a name="output_vpc_flow_log_destination_arn"></a> [vpc\_flow\_log\_destination\_arn](#output\_vpc\_flow\_log\_destination\_arn) | The ARN of the destination for VPC Flow Logs |
 | <a name="output_vpc_flow_log_id"></a> [vpc\_flow\_log\_id](#output\_vpc\_flow\_log\_id) | The ID of the Flow Log resource |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
+| <a name="output_vpc_name"></a> [vpc\_name](#output\_vpc\_name) | The VPC name for a stand. |
 <!-- END_TF_DOCS -->
