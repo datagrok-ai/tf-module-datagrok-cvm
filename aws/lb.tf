@@ -76,7 +76,7 @@ resource "aws_route53_zone" "external" {
 module "acm" {
   source  = "registry.terraform.io/terraform-aws-modules/acm/aws"
   version = "~> 3.5.0"
-  count   = try(length(var.acm_cert_arn) > 0, false) ? 0 : 1
+  count   = var.acm_cert_create ? 1 : 0
 
   domain_name       = var.domain_name
   zone_id           = var.route53_enabled ? var.route53_external_zone : null
@@ -122,7 +122,7 @@ module "lb_ext" {
     {
       port            = 443
       protocol        = "HTTPS"
-      certificate_arn = try(length(var.acm_cert_arn) > 0, false) ? var.acm_cert_arn : module.acm[0].acm_certificate_arn
+      certificate_arn = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
       action_type     = "fixed-response"
       fixed_response = {
         status_code  = 204
@@ -133,13 +133,13 @@ module "lb_ext" {
     {
       port               = 5005
       protocol           = "HTTPS"
-      certificate_arn    = try(length(var.acm_cert_arn) > 0, false) ? var.acm_cert_arn : module.acm[0].acm_certificate_arn
+      certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
       target_group_index = 5
     },
     {
       port               = 54321
       protocol           = "HTTPS"
-      certificate_arn    = try(length(var.acm_cert_arn) > 0, false) ? var.acm_cert_arn : module.acm[0].acm_certificate_arn
+      certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
       target_group_index = 6
     }
   ]
@@ -371,7 +371,7 @@ resource "aws_cloudwatch_log_group" "external" {
   count             = var.route53_enabled && var.enable_route53_logging && var.create_route53_external_zone ? 1 : 0
   name              = "/aws/route53/${aws_route53_zone.external[0].name}"
   retention_in_days = 7
-  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+  kms_key_id        = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
   tags              = local.tags
 }
 

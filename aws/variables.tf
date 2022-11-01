@@ -289,6 +289,13 @@ variable "service_discovery_namespace" {
   description = "Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one."
 }
 
+variable "acm_cert_create" {
+  type        = bool
+  default     = true
+  nullable    = false
+  description = "Specifies if the ACM certificate should be created."
+}
+
 variable "acm_cert_arn" {
   type        = string
   default     = null

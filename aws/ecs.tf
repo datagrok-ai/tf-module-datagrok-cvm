@@ -2,7 +2,7 @@ resource "aws_cloudwatch_log_group" "ecs" {
   count             = var.create_cloudwatch_log_group ? 1 : 0
   name              = "/aws/ecs/${local.full_name}"
   retention_in_days = 7
-  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+  kms_key_id        = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
   tags              = local.tags
 }
 module "sg" {
@@ -34,7 +34,7 @@ module "ecs" {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
-        cloud_watch_log_group_name     = try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
+        cloud_watch_log_group_name     = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
         cloud_watch_encryption_enabled = var.custom_kms_key
       }
     }
@@ -73,7 +73,7 @@ resource "aws_secretsmanager_secret" "docker_hub" {
   count                   = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
   name                    = "${local.full_name}_docker_hub"
   description             = "Docker Hub token to download images"
-  kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+  kms_key_id              = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
   recovery_window_in_days = 7
   tags                    = local.tags
 }
@@ -93,7 +93,7 @@ resource "aws_ecr_repository" "ecr" {
   force_delete         = !var.termination_protection
   encryption_configuration {
     encryption_type = "KMS"
-    kms_key         = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+    kms_key         = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
   }
   image_scanning_configuration {
     scan_on_push = var.ecr_image_scan_on_push
@@ -250,16 +250,15 @@ resource "aws_ecs_task_definition" "grok_compute" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "grok_compute"
+        LogDriver = "awslogs"
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "grok_compute"
         }
       }
       memoryReservation = 100
-    },
-    merge({
+    }, merge({
       name  = "grok_compute"
       image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
       dependsOn = [
@@ -270,11 +269,11 @@ resource "aws_ecs_task_definition" "grok_compute" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "grok_compute"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "grok_compute"
         }
       }
       portMappings = [
@@ -313,11 +312,11 @@ resource "aws_ecs_task_definition" "jkg" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_kernel_gateway"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
       memoryReservation = 100
@@ -333,11 +332,11 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_kernel_gateway"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
       portMappings = [
@@ -391,11 +390,11 @@ resource "aws_ecs_task_definition" "jn" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_notebook"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_notebook"
         }
       }
       memoryReservation = 100
@@ -411,11 +410,11 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_notebook"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_notebook"
         }
       }
       portMappings = [
@@ -457,11 +456,11 @@ resource "aws_ecs_task_definition" "h2o" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "h2o"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "h2o"
         }
       }
       memoryReservation = 100
@@ -477,11 +476,11 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "h2o"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region = data.aws_region.current.name
+          awslogs-stream-prefix = "h2o"
         }
       }
       portMappings = [
@@ -901,7 +900,7 @@ resource "aws_ecs_service" "h2o" {
   }
 }
 data "aws_ami" "aws_optimized_ecs" {
-  count       = var.ecs_launch_type == "EC2" ? 1 : 0
+  count       = !try(length(var.ami_id) > 0, false) && var.ecs_launch_type == "EC2" ? 1 : 0
   most_recent = true
   filter {
     name   = "name"
@@ -986,9 +985,9 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 resource "aws_instance" "ec2" {
   count         = var.ecs_launch_type == "EC2" ? 1 : 0
-  ami           = try(length(var.ami_id) > 0, false) ? var.ami_id : data.aws_ami.aws_optimized_ecs[0].id
+  ami           = try(data.aws_ami.aws_optimized_ecs[0].id, var.ami_id)
   instance_type = var.instance_type
-  key_name      = try(length(var.key_pair_name) > 0, false) ? var.key_pair_name : aws_key_pair.ec2[0].key_name
+  key_name      = try(aws_key_pair.ec2[0].key_name, var.key_pair_name)
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     ecs_cluster_name = module.ecs.cluster_name
   }))
@@ -1012,7 +1011,7 @@ resource "aws_instance" "ec2" {
   }
   root_block_device {
     encrypted   = true
-    kms_key_id  = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+    kms_key_id  = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
     volume_type = "gp3"
     throughput  = try(length(var.root_volume_throughput) > 0, false) ? var.root_volume_throughput : null
     volume_size = 100
