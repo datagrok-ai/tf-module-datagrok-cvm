@@ -6,11 +6,11 @@ locals {
     Terraform   = "true"
   })
   full_name      = "${var.name}-${var.environment}"
-  vpc_name       = try(var.vpc_name, "${var.name}-${var.environment}")
-  ecs_name       = try(var.ecs_name, "${var.name}-${var.environment}")
-  lb_name        = try(var.lb_name, "${var.name}-${var.environment}")
-  ec2_name       = try(var.ec2_name, "${var.name}-${var.environment}")
-  sns_topic_name = try(var.monitoring.sns_topic_name, "${var.name}-${var.environment}")
+  vpc_name       = coalesce(var.vpc_name, "${var.name}-${var.environment}")
+  ecs_name       = coalesce(var.ecs_name, "${var.name}-${var.environment}")
+  lb_name        = coalesce(var.lb_name, "${var.name}-${var.environment}")
+  ec2_name       = coalesce(var.ec2_name, "${var.name}-${var.environment}")
+  sns_topic_name = coalesce(var.monitoring.sns_topic_name, "${var.name}-${var.environment}")
   r53_record     = var.route53_enabled ? try("${var.route53_record_name}.${var.domain_name}", "${var.name}-${var.environment}.${var.domain_name}") : ""
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
 
