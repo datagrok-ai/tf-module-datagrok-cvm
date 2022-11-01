@@ -252,43 +252,43 @@ resource "aws_ecs_task_definition" "grok_compute" {
       logConfiguration = {
         LogDriver = "awslogs"
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "grok_compute"
         }
       }
       memoryReservation = 100
-    }, merge({
-      name  = "grok_compute"
-      image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
-      dependsOn = [
-        {
-          "condition" : "SUCCESS",
-          "containerName" : "resolv_conf"
+      }, merge({
+        name  = "grok_compute"
+        image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
+        dependsOn = [
+          {
+            "condition" : "SUCCESS",
+            "containerName" : "resolv_conf"
+          }
+        ]
+        essential = true
+        logConfiguration = {
+          LogDriver = "awslogs",
+          Options = {
+            awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+            awslogs-region        = data.aws_region.current.name
+            awslogs-stream-prefix = "grok_compute"
+          }
         }
-      ]
-      essential = true
-      logConfiguration = {
-        LogDriver = "awslogs",
-        Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
-          awslogs-stream-prefix = "grok_compute"
+        portMappings = [
+          {
+            hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
+            protocol      = "tcp"
+            containerPort = 5005
+          }
+        ]
+        memoryReservation = var.grok_compute_container_memory_reservation
+        cpu               = var.grok_compute_container_cpu
+        }, var.ecr_enabled ? {} : {
+        repositoryCredentials = {
+          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
         }
-      }
-      portMappings = [
-        {
-          hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
-          protocol      = "tcp"
-          containerPort = 5005
-        }
-      ]
-      memoryReservation = var.grok_compute_container_memory_reservation
-      cpu               = var.grok_compute_container_cpu
-      }, var.ecr_enabled ? {} : {
-      repositoryCredentials = {
-        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-      }
     })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.grok_compute_cpu : null
@@ -314,8 +314,8 @@ resource "aws_ecs_task_definition" "jkg" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
@@ -334,8 +334,8 @@ resource "aws_ecs_task_definition" "jkg" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
@@ -392,8 +392,8 @@ resource "aws_ecs_task_definition" "jn" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "jupyter_notebook"
         }
       }
@@ -412,8 +412,8 @@ resource "aws_ecs_task_definition" "jn" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "jupyter_notebook"
         }
       }
@@ -458,8 +458,8 @@ resource "aws_ecs_task_definition" "h2o" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "h2o"
         }
       }
@@ -478,8 +478,8 @@ resource "aws_ecs_task_definition" "h2o" {
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
-          awslogs-group = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region = data.aws_region.current.name
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
           awslogs-stream-prefix = "h2o"
         }
       }
