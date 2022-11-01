@@ -96,7 +96,7 @@ resource "aws_iam_policy" "exec" {
         "Condition" = {},
         "Effect"    = "Allow",
         "Resource" = [
-          try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
+          try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn, "*")
         ]
       },
       {
