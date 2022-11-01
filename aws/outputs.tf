@@ -90,7 +90,7 @@ output "cloudwatch_log_group_arn" {
 
 output "log_bucket" {
   description = "The ID of the S3 bucket for logs"
-  value       = try(module.log_bucket.s3_bucket_id, var.bucket_logging.log_bucket)
+  value       = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
 }
 
 output "service_discovery_namespace" {
