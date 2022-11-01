@@ -11,7 +11,7 @@ module "sg" {
 
   name        = local.ecs_name
   description = "${local.ecs_name} Datagrok ECS Security Group"
-  vpc_id      = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
+  vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
   egress_with_cidr_blocks = var.egress_rules
   ingress_with_cidr_blocks = [
@@ -20,7 +20,7 @@ module "sg" {
       to_port     = 65535
       protocol    = "tcp"
       description = "Access from within Security Group. Internal communications."
-      cidr_blocks = try(length(var.vpc_id) > 0, false) ? var.cidr : module.vpc[0].vpc_cidr_block
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
   ]
 }
@@ -427,7 +427,7 @@ resource "aws_service_discovery_private_dns_namespace" "datagrok" {
   count       = var.service_discovery_namespace.create && var.ecs_launch_type == "FARGATE" ? 1 : 0
   name        = "datagrok.${var.name}.${var.environment}.local"
   description = "Datagrok Service Discovery"
-  vpc         = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
+  vpc         = try(module.vpc[0].vpc_id, var.vpc_id)
 }
 resource "aws_service_discovery_service" "grok_compute" {
   count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
@@ -611,7 +611,7 @@ resource "aws_ecs_service" "grok_compute" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -675,7 +675,7 @@ resource "aws_ecs_service" "jkg" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -739,7 +739,7 @@ resource "aws_ecs_service" "jn" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -803,7 +803,7 @@ resource "aws_ecs_service" "h2o" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -903,7 +903,7 @@ resource "aws_instance" "ec2" {
     ecs_cluster_name = module.ecs.cluster_name
   }))
   availability_zone                    = data.aws_availability_zones.available.names[0]
-  subnet_id                            = try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids[0] : module.vpc[0].private_subnets[0]
+  subnet_id                            = try(module.vpc[0].private_subnets[0], var.private_subnet_ids[0])
   associate_public_ip_address          = false
   vpc_security_group_ids               = [module.sg.security_group_id]
   disable_api_stop                     = var.termination_protection
