@@ -14,6 +14,25 @@ locals {
   r53_record     = var.route53_enabled ? try(length(var.route53_record_name) > 0, false) ? "${var.route53_record_name}.${var.domain_name}" : "${var.name}-${var.environment}.${var.domain_name}" : ""
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
 
+  images = {
+    grok_compute = {
+      image = var.docker_grok_compute_image
+      tag   = var.docker_grok_compute_tag
+    },
+    jupyter_kernel_gateway = {
+      image = var.docker_jkg_image
+      tag   = var.docker_jkg_tag
+    },
+    jupyter_notebook = {
+      image = var.docker_jn_image
+      tag   = var.docker_jn_tag
+    },
+    h2o = {
+      image = var.docker_h2o_image
+      tag   = var.docker_h2o_tag
+    }
+  }
+
   targets = [
     {
       name             = "gc"

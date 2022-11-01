@@ -69,21 +69,59 @@ module "ecs" {
 #}
 #POLICY
 #}
+resource "aws_secretsmanager_secret" "docker_hub" {
+  count                   = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
+  name                    = "${local.full_name}_docker_hub"
+  description             = "Docker Hub token to download images"
+  kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+  recovery_window_in_days = 7
+  tags                    = local.tags
+}
 resource "aws_secretsmanager_secret_version" "docker_hub" {
-  count     = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
+  count     = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
   secret_id = aws_secretsmanager_secret.docker_hub[0].id
   secret_string = jsonencode({
     "username" : sensitive(var.docker_hub_credentials.user),
     "password" : sensitive(var.docker_hub_credentials.password)
   })
 }
-resource "aws_secretsmanager_secret" "docker_hub" {
-  count                   = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
-  name                    = "${local.full_name}_docker_hub"
-  description             = "Docker Hub token to download images"
-  kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
-  recovery_window_in_days = 7
+
+resource "aws_ecr_repository" "ecr" {
+  for_each             = var.ecr_enabled ? local.images : {}
+  name                 = each.key
+  image_tag_mutability = var.ecr_image_tag_mutable ? "MUTABLE" : "IMMUTABLE"
+  force_delete         = !var.termination_protection
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key         = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+  }
+  image_scanning_configuration {
+    scan_on_push = var.ecr_image_scan_on_push
+  }
+  tags = local.tags
 }
+
+# https://github.com/mathspace/terraform-aws-ecr-docker-image/blob/master/hash.shÏ
+#data "external" "docker_hash" {
+#  for_each = var.ecr_enabled ? local.images : {}
+#  program  = ["${path.module}/docker_hash.sh", each.value["image"], each.value["tag"]]
+#}
+
+resource "null_resource" "ecr_push" {
+  for_each = var.ecr_enabled ? local.images : {}
+  triggers = {
+    tag   = each.value["tag"] == "latest" ? "${each.value["tag"]}-${timestamp()}" : each.value["tag"]
+    image = each.value["image"]
+  }
+
+  provisioner "local-exec" {
+    command     = "${path.module}/ecr_push.sh --tag ${each.value["tag"]} --image ${each.value["image"]} --ecr ${aws_ecr_repository.ecr[each.key].repository_url}"
+    interpreter = ["bash", "-c"]
+  }
+
+  depends_on = [aws_ecr_repository.ecr]
+}
+
 resource "aws_iam_policy" "exec" {
   name        = "${local.ecs_name}_exec"
   description = "Datagrok execution policy for ECS task"
@@ -91,14 +129,6 @@ resource "aws_iam_policy" "exec" {
   policy = jsonencode({
     "Version" = "2012-10-17",
     "Statement" = [
-      {
-        "Action"    = ["secretsmanager:GetSecretValue"],
-        "Condition" = {},
-        "Effect"    = "Allow",
-        "Resource" = [
-          try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn, "*")
-        ]
-      },
       {
         "Action" = [
           "logs:CreateLogStream",
@@ -113,6 +143,52 @@ resource "aws_iam_policy" "exec" {
     ]
   })
 }
+
+resource "aws_iam_policy" "ecr" {
+  count       = var.ecr_enabled ? 1 : 0
+  name        = "${local.ecs_name}_ecr"
+  description = "Datagrok ECR pull policy for ECS task"
+
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action" = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetAuthorizationToken"
+        ],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = toset([
+          for ecr in aws_ecr_repository.ecr : ecr.arn
+        ])
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "docker_hub" {
+  count       = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
+  name        = "${local.ecs_name}_docker_hub"
+  description = "Datagrok Docker Hub credentials policy for ECS task"
+
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action"    = ["secretsmanager:GetSecretValue"],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = [
+          try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
@@ -129,7 +205,10 @@ resource "aws_iam_role" "exec" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
+  ]
 
   tags = local.tags
 }
@@ -149,7 +228,10 @@ resource "aws_iam_role" "task" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
+  ]
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
@@ -177,12 +259,9 @@ resource "aws_ecs_task_definition" "grok_compute" {
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "grok_compute"
-      image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -207,7 +286,11 @@ resource "aws_ecs_task_definition" "grok_compute" {
       ]
       memoryReservation = var.grok_compute_container_memory_reservation
       cpu               = var.grok_compute_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.grok_compute_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory : null
@@ -239,12 +322,9 @@ resource "aws_ecs_task_definition" "jkg" {
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "jupyter_kernel_gateway"
-      image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_jkg_image}:${var.docker_jkg_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -272,7 +352,11 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       memoryReservation = var.jkg_container_memory_reservation
       cpu               = var.jkg_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
 
   dynamic "ephemeral_storage" {
@@ -316,12 +400,9 @@ resource "aws_ecs_task_definition" "jn" {
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "jupyter_notebook"
-      image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_jn_image}:${var.docker_jn_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -349,7 +430,11 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       memoryReservation = var.jn_container_memory_reservation
       cpu               = var.jn_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.jn_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.jn_memory : null
@@ -381,12 +466,9 @@ resource "aws_ecs_task_definition" "h2o" {
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "h2o"
-      image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_h2o_image}:${var.docker_h2o_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -414,7 +496,11 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       memoryReservation = var.h2o_container_memory_reservation
       cpu               = var.h2o_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.h2o_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.h2o_memory : null
@@ -885,7 +971,11 @@ resource "aws_iam_role" "ec2" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn, aws_iam_policy.ec2.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn,
+    aws_iam_policy.ec2.arn
+  ]
 
   tags = local.tags
 }
