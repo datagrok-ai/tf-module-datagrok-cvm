@@ -400,7 +400,7 @@ resource "aws_cloudwatch_metric_alarm" "lb_target" {
 
 resource "aws_cloudwatch_metric_alarm" "datagrok_lb_5xx_count" {
   count               = var.monitoring.alarms_enabled ? 1 : 0
-  alarm_name          = "${local.ecs_name}-datagrok-lb-5xx"
+  alarm_name          = "${local.lb_name}-datagrok-lb-5xx"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "5"
   metric_name         = "HTTPCode_ELB_5XX_Count"

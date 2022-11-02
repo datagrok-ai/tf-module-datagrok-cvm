@@ -199,6 +199,24 @@ variable "docker_hub_credentials" {
   description = "Docker Hub credentials to download images.\n`create_secret` - Specifies if new secret with Docker Hub credentials will be created.\n`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified\n`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified\n`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables\nEither user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified."
 }
 
+variable "ecr_enabled" {
+  type     = bool
+  default  = false
+  nullable = false
+}
+
+variable "ecr_image_tag_mutable" {
+  type     = bool
+  default  = true
+  nullable = false
+}
+
+variable "ecr_image_scan_on_push" {
+  type     = bool
+  default  = true
+  nullable = false
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
@@ -269,6 +287,13 @@ variable "service_discovery_namespace" {
     error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
   }
   description = "Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one."
+}
+
+variable "acm_cert_create" {
+  type        = bool
+  default     = true
+  nullable    = false
+  description = "Specifies if the ACM certificate should be created."
 }
 
 variable "acm_cert_arn" {
@@ -348,32 +373,60 @@ variable "cloudwatch_log_group_arn" {
   description = "The ARM of existing CloudWatch Log Group to use with Datagrok."
 }
 
+variable "docker_grok_compute_image" {
+  type        = string
+  default     = "docker.io/datagrok/grok_compute"
+  nullable    = false
+  description = "Grok Compute Docker Image registry location. By default the official image from Docker Hub will be used."
+}
+
 variable "docker_grok_compute_tag" {
   type        = string
   default     = "latest"
   nullable    = false
-  description = "Tag from Docker Hub for datagrok/grok_compute image"
+  description = "Tag from Docker registry for Grok Compute Docker Image"
+}
+
+variable "docker_jkg_image" {
+  type        = string
+  default     = "docker.io/datagrok/jupyter_kernel_gateway"
+  nullable    = false
+  description = "Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used."
 }
 
 variable "docker_jkg_tag" {
   type        = string
   default     = "latest"
   nullable    = false
-  description = "Tag from Docker Hub for datagrok/jupyter_kernel_gateway image"
+  description = "Tag from Docker registry for Jupyter Kernel Gateway Docker Image"
+}
+
+variable "docker_jn_image" {
+  type        = string
+  default     = "docker.io/datagrok/jupyter_notebook"
+  nullable    = false
+  description = "Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used."
 }
 
 variable "docker_jn_tag" {
   type        = string
   default     = "latest"
   nullable    = false
-  description = "Tag from Docker Hub for datagrok/jupyter_notebook image"
+  description = "Tag from Docker registry for Jupyter Notebook Docker Image"
+}
+
+variable "docker_h2o_image" {
+  type        = string
+  default     = "docker.io/datagrok/h2o"
+  nullable    = false
+  description = "H2O Docker Image registry location. By default the official image from Docker Hub will be used."
 }
 
 variable "docker_h2o_tag" {
   type        = string
   default     = "latest"
   nullable    = false
-  description = "Tag from Docker Hub for datagrok/h2o image"
+  description = "Tag from Docker registry for H2O Docker Image"
 }
 
 variable "create_cloudwatch_log_group" {

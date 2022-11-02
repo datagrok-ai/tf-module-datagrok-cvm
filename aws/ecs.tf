@@ -2,8 +2,9 @@ resource "aws_cloudwatch_log_group" "ecs" {
   count             = var.create_cloudwatch_log_group ? 1 : 0
   name              = "/aws/ecs/${local.full_name}"
   retention_in_days = 7
-  kms_key_id        = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
-  tags              = local.tags
+  #checkov:skip=CKV_AWS_158:The KMS key is configurable
+  kms_key_id = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
+  tags       = local.tags
 }
 module "sg" {
   source  = "registry.terraform.io/terraform-aws-modules/security-group/aws"
@@ -11,7 +12,7 @@ module "sg" {
 
   name        = local.ecs_name
   description = "${local.ecs_name} Datagrok ECS Security Group"
-  vpc_id      = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
+  vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
   egress_with_cidr_blocks = var.egress_rules
   ingress_with_cidr_blocks = [
@@ -20,7 +21,7 @@ module "sg" {
       to_port     = 65535
       protocol    = "tcp"
       description = "Access from within Security Group. Internal communications."
-      cidr_blocks = try(length(var.vpc_id) > 0, false) ? var.cidr : module.vpc[0].vpc_cidr_block
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
   ]
 }
@@ -34,7 +35,7 @@ module "ecs" {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
-        cloud_watch_log_group_name     = try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
+        cloud_watch_log_group_name     = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
         cloud_watch_encryption_enabled = var.custom_kms_key
       }
     }
@@ -69,21 +70,62 @@ module "ecs" {
 #}
 #POLICY
 #}
+
+resource "aws_secretsmanager_secret" "docker_hub" {
+  count       = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
+  name        = "${local.full_name}_docker_hub"
+  description = "Docker Hub token to download images"
+  #checkov:skip=CKV_AWS_149:The KMS key is configurable
+  kms_key_id              = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
+  recovery_window_in_days = 7
+  tags                    = local.tags
+}
 resource "aws_secretsmanager_secret_version" "docker_hub" {
-  count     = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
+  count     = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
   secret_id = aws_secretsmanager_secret.docker_hub[0].id
   secret_string = jsonencode({
     "username" : sensitive(var.docker_hub_credentials.user),
     "password" : sensitive(var.docker_hub_credentials.password)
   })
 }
-resource "aws_secretsmanager_secret" "docker_hub" {
-  count                   = try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
-  name                    = "${local.full_name}_docker_hub"
-  description             = "Docker Hub token to download images"
-  kms_key_id              = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
-  recovery_window_in_days = 7
+
+resource "aws_ecr_repository" "ecr" {
+  for_each = var.ecr_enabled ? local.images : {}
+  name     = each.key
+  #checkov:skip=CKV_AWS_51:The ECR Image Tags immutability is configurable
+  image_tag_mutability = var.ecr_image_tag_mutable ? "MUTABLE" : "IMMUTABLE"
+  force_delete         = !var.termination_protection
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key         = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
+  }
+  image_scanning_configuration {
+    scan_on_push = var.ecr_image_scan_on_push
+  }
+  tags = local.tags
 }
+
+# https://github.com/mathspace/terraform-aws-ecr-docker-image/blob/master/hash.shÏ
+#data "external" "docker_hash" {
+#  for_each = var.ecr_enabled ? local.images : {}
+#  program  = ["${path.module}/docker_hash.sh", each.value["image"], each.value["tag"]]
+#}
+
+resource "null_resource" "ecr_push" {
+  for_each = var.ecr_enabled ? local.images : {}
+  triggers = {
+    tag   = each.value["tag"] == "latest" ? "${each.value["tag"]}-${timestamp()}" : each.value["tag"]
+    image = each.value["image"]
+  }
+
+  provisioner "local-exec" {
+    command     = "${path.module}/ecr_push.sh --tag ${each.value["tag"]} --image ${each.value["image"]} --ecr ${aws_ecr_repository.ecr[each.key].repository_url}"
+    interpreter = ["bash", "-c"]
+  }
+
+  depends_on = [aws_ecr_repository.ecr]
+}
+
 resource "aws_iam_policy" "exec" {
   name        = "${local.ecs_name}_exec"
   description = "Datagrok execution policy for ECS task"
@@ -91,14 +133,6 @@ resource "aws_iam_policy" "exec" {
   policy = jsonencode({
     "Version" = "2012-10-17",
     "Statement" = [
-      {
-        "Action"    = ["secretsmanager:GetSecretValue"],
-        "Condition" = {},
-        "Effect"    = "Allow",
-        "Resource" = [
-          try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-        ]
-      },
       {
         "Action" = [
           "logs:CreateLogStream",
@@ -113,6 +147,52 @@ resource "aws_iam_policy" "exec" {
     ]
   })
 }
+
+resource "aws_iam_policy" "ecr" {
+  count       = var.ecr_enabled ? 1 : 0
+  name        = "${local.ecs_name}_ecr"
+  description = "Datagrok ECR pull policy for ECS task"
+
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action" = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetAuthorizationToken"
+        ],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = toset([
+          for ecr in aws_ecr_repository.ecr : ecr.arn
+        ])
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "docker_hub" {
+  count       = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
+  name        = "${local.ecs_name}_docker_hub"
+  description = "Datagrok Docker Hub credentials policy for ECS task"
+
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action"    = ["secretsmanager:GetSecretValue"],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = [
+          try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
@@ -129,7 +209,10 @@ resource "aws_iam_role" "exec" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
+  ]
 
   tags = local.tags
 }
@@ -149,7 +232,10 @@ resource "aws_iam_role" "task" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
+  ]
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
@@ -168,46 +254,46 @@ resource "aws_ecs_task_definition" "grok_compute" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "grok_compute"
+        LogDriver = "awslogs"
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "grok_compute"
         }
       }
       memoryReservation = 100
-    },
-    {
-      name  = "grok_compute"
-      image = "docker.io/datagrok/grok_compute:${var.docker_grok_compute_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
-      dependsOn = [
-        {
-          "condition" : "SUCCESS",
-          "containerName" : "resolv_conf"
+      }, merge({
+        name  = "grok_compute"
+        image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
+        dependsOn = [
+          {
+            "condition" : "SUCCESS",
+            "containerName" : "resolv_conf"
+          }
+        ]
+        essential = true
+        logConfiguration = {
+          LogDriver = "awslogs",
+          Options = {
+            awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+            awslogs-region        = data.aws_region.current.name
+            awslogs-stream-prefix = "grok_compute"
+          }
         }
-      ]
-      essential = true
-      logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "grok_compute"
+        portMappings = [
+          {
+            hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
+            protocol      = "tcp"
+            containerPort = 5005
+          }
+        ]
+        memoryReservation = var.grok_compute_container_memory_reservation
+        cpu               = var.grok_compute_container_cpu
+        }, var.ecr_enabled ? {} : {
+        repositoryCredentials = {
+          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
         }
-      }
-      portMappings = [
-        {
-          hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
-          protocol      = "tcp"
-          containerPort = 5005
-        }
-      ]
-      memoryReservation = var.grok_compute_container_memory_reservation
-      cpu               = var.grok_compute_container_cpu
-    }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.grok_compute_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory : null
@@ -230,21 +316,18 @@ resource "aws_ecs_task_definition" "jkg" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_kernel_gateway"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "jupyter_kernel_gateway"
-      image = "docker.io/datagrok/jupyter_kernel_gateway:${var.docker_jkg_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_jkg_image}:${var.docker_jkg_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -253,11 +336,11 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_kernel_gateway"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_kernel_gateway"
         }
       }
       portMappings = [
@@ -272,7 +355,11 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       memoryReservation = var.jkg_container_memory_reservation
       cpu               = var.jkg_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
 
   dynamic "ephemeral_storage" {
@@ -307,21 +394,18 @@ resource "aws_ecs_task_definition" "jn" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_notebook"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_notebook"
         }
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "jupyter_notebook"
-      image = "docker.io/datagrok/jupyter_notebook:${var.docker_jn_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_jn_image}:${var.docker_jn_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -330,11 +414,11 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "jupyter_notebook"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "jupyter_notebook"
         }
       }
       portMappings = [
@@ -349,7 +433,11 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       memoryReservation = var.jn_container_memory_reservation
       cpu               = var.jn_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.jn_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.jn_memory : null
@@ -372,21 +460,18 @@ resource "aws_ecs_task_definition" "h2o" {
       essential = false
       image     = "docker/ecs-searchdomain-sidecar:1.0"
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "h2o"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "h2o"
         }
       }
       memoryReservation = 100
     },
-    {
+    merge({
       name  = "h2o"
-      image = "docker.io/datagrok/h2o:${var.docker_h2o_tag}"
-      repositoryCredentials = {
-        credentialsParameter = try(var.docker_hub_credentials.create_secret, false) ? aws_secretsmanager_secret.docker_hub[0].arn : try(var.docker_hub_credentials.secret_arn, "")
-      }
+      image = "${var.docker_h2o_image}:${var.docker_h2o_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -395,11 +480,11 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       essential = true
       logConfiguration = {
-        "LogDriver" : "awslogs",
-        "Options" : {
-          "awslogs-group" : try(length(var.cloudwatch_log_group_name) > 0, false) ? var.cloudwatch_log_group_name : aws_cloudwatch_log_group.ecs[0].name
-          "awslogs-region" : data.aws_region.current.name
-          "awslogs-stream-prefix" : "h2o"
+        LogDriver = "awslogs",
+        Options = {
+          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "h2o"
         }
       }
       portMappings = [
@@ -414,7 +499,11 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       memoryReservation = var.h2o_container_memory_reservation
       cpu               = var.h2o_container_cpu
-    }
+      }, var.ecr_enabled ? {} : {
+      repositoryCredentials = {
+        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+      }
+    })
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.h2o_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.h2o_memory : null
@@ -427,7 +516,7 @@ resource "aws_service_discovery_private_dns_namespace" "datagrok" {
   count       = var.service_discovery_namespace.create && var.ecs_launch_type == "FARGATE" ? 1 : 0
   name        = "datagrok.${var.name}.${var.environment}.local"
   description = "Datagrok Service Discovery"
-  vpc         = try(length(var.vpc_id) > 0, false) ? var.vpc_id : module.vpc[0].vpc_id
+  vpc         = try(module.vpc[0].vpc_id, var.vpc_id)
 }
 resource "aws_service_discovery_service" "grok_compute" {
   count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
@@ -611,7 +700,7 @@ resource "aws_ecs_service" "grok_compute" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -675,7 +764,7 @@ resource "aws_ecs_service" "jkg" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -739,7 +828,7 @@ resource "aws_ecs_service" "jn" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -803,7 +892,7 @@ resource "aws_ecs_service" "h2o" {
   dynamic "network_configuration" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        subnets : try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids : module.vpc[0].private_subnets,
+        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
         security_groups : [module.sg.security_group_id]
       }
     ] : []
@@ -815,7 +904,7 @@ resource "aws_ecs_service" "h2o" {
   }
 }
 data "aws_ami" "aws_optimized_ecs" {
-  count       = var.ecs_launch_type == "EC2" ? 1 : 0
+  count       = !try(length(var.ami_id) > 0, false) && var.ecs_launch_type == "EC2" ? 1 : 0
   most_recent = true
   filter {
     name   = "name"
@@ -885,7 +974,11 @@ resource "aws_iam_role" "ec2" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.exec.arn, aws_iam_policy.ec2.arn]
+  managed_policy_arns = [
+    aws_iam_policy.exec.arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn,
+    aws_iam_policy.ec2.arn
+  ]
 
   tags = local.tags
 }
@@ -896,14 +989,14 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 resource "aws_instance" "ec2" {
   count         = var.ecs_launch_type == "EC2" ? 1 : 0
-  ami           = try(length(var.ami_id) > 0, false) ? var.ami_id : data.aws_ami.aws_optimized_ecs[0].id
+  ami           = try(data.aws_ami.aws_optimized_ecs[0].id, var.ami_id)
   instance_type = var.instance_type
-  key_name      = try(length(var.key_pair_name) > 0, false) ? var.key_pair_name : aws_key_pair.ec2[0].key_name
+  key_name      = try(aws_key_pair.ec2[0].key_name, var.key_pair_name)
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     ecs_cluster_name = module.ecs.cluster_name
   }))
   availability_zone                    = data.aws_availability_zones.available.names[0]
-  subnet_id                            = try(length(var.vpc_id) > 0, false) ? var.private_subnet_ids[0] : module.vpc[0].private_subnets[0]
+  subnet_id                            = try(module.vpc[0].private_subnets[0], var.private_subnet_ids[0])
   associate_public_ip_address          = false
   vpc_security_group_ids               = [module.sg.security_group_id]
   disable_api_stop                     = var.termination_protection
@@ -922,7 +1015,7 @@ resource "aws_instance" "ec2" {
   }
   root_block_device {
     encrypted   = true
-    kms_key_id  = var.custom_kms_key ? (try(length(var.kms_key) > 0, false) ? var.kms_key : module.kms[0].key_arn) : null
+    kms_key_id  = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
     volume_type = "gp3"
     throughput  = try(length(var.root_volume_throughput) > 0, false) ? var.root_volume_throughput : null
     volume_size = 100

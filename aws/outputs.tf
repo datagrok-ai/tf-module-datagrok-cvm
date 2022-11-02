@@ -25,7 +25,7 @@ output "vpc_name" {
 
 output "ecs_name" {
   description = "The ECS Cluster name of a stand."
-  value       = try(module.ecs.cluster_name, "")
+  value       = module.ecs.cluster_name
 }
 
 output "lb_name" {
@@ -90,7 +90,7 @@ output "cloudwatch_log_group_arn" {
 
 output "log_bucket" {
   description = "The ID of the S3 bucket for logs"
-  value       = try(module.log_bucket.s3_bucket_id, var.bucket_logging.log_bucket)
+  value       = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
 }
 
 output "service_discovery_namespace" {
@@ -110,7 +110,7 @@ output "route53_internal_zone" {
 
 output "sns_topic" {
   description = "The ARN of the SNS topic from which messages will be sent"
-  value       = try(module.sns_topic.sns_topic_arn, var.monitoring.sns_topic_arn)
+  value       = coalesce(module.sns_topic.sns_topic_arn, var.monitoring.sns_topic_arn)
 }
 
 output "docker_hub_secret" {
