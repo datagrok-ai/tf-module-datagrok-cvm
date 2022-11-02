@@ -20,6 +20,7 @@ module "datagrok_cvm" {
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.36.1 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.4.3 |
 
 ## Providers
@@ -28,6 +29,7 @@ module "datagrok_cvm" {
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.36.1 |
 | <a name="provider_aws.datagrok-cloudwatch-r53-external"></a> [aws.datagrok-cloudwatch-r53-external](#provider\_aws.datagrok-cloudwatch-r53-external) | >= 4.36.1 |
+| <a name="provider_null"></a> [null](#provider\_null) | >= 3.2.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | >= 3.4.3 |
 
 ## Modules
@@ -63,6 +65,7 @@ module "datagrok_cvm" {
 | [aws_cloudwatch_metric_alarm.jkg_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.jn_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lb_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_ecr_repository.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_ecs_service.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
@@ -72,7 +75,9 @@ module "datagrok_cvm" {
 | [aws_ecs_task_definition.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_ecs_task_definition.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_instance_profile.ec2_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
+| [aws_iam_policy.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
@@ -93,6 +98,7 @@ module "datagrok_cvm" {
 | [aws_service_discovery_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_service_discovery_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_sns_topic_subscription.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
+| [null_resource.ecr_push](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_pet.this](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 | [aws_ami.aws_optimized_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
@@ -105,6 +111,7 @@ module "datagrok_cvm" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_acm_cert_arn"></a> [acm\_cert\_arn](#input\_acm\_cert\_arn) | ACM certificate ARN for Datagrok endpoint. If it is not set it will be created | `string` | `null` | no |
+| <a name="input_acm_cert_create"></a> [acm\_cert\_create](#input\_acm\_cert\_create) | Specifies if the ACM certificate should be created. | `bool` | `true` | no |
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | The AMI ID for Datagrok EC2 instance. If it is not specified, the basic AWS ECS optimized AMI will be used. | `string` | `null` | no |
 | <a name="input_bucket_logging"></a> [bucket\_logging](#input\_bucket\_logging) | Bucket Logging object.<br> `enabled` - Specifies whether Logging requests using server access logging for Datagrok S3 bucket are enabled. We recommend to set it to true for production stand.<br>`create_log_bucket` - Specifies whether the S3 log bucket will be created.<br>`log_bucket` - The name of S3 logging bucket. If it is not specified, the S3 log bucket for Datagrok S3 bucket will be created. | <pre>object({<br>    log_bucket        = optional(string)<br>    create_log_bucket = bool<br>    enabled           = bool<br>  })</pre> | <pre>{<br>  "create_log_bucket": true,<br>  "enabled": true<br>}</pre> | no |
 | <a name="input_cidr"></a> [cidr](#input\_cidr) | The CIDR for the VPC. | `string` | `"10.0.0.0/17"` | no |
@@ -114,14 +121,21 @@ module "datagrok_cvm" {
 | <a name="input_create_route53_external_zone"></a> [create\_route53\_external\_zone](#input\_create\_route53\_external\_zone) | Specifies if the Route53 external hosted zone for the domain should be created. If not specified some other DNS service should be used instead of Route53 or existing Route53 zone. | `bool` | `true` | no |
 | <a name="input_create_route53_internal_zone"></a> [create\_route53\_internal\_zone](#input\_create\_route53\_internal\_zone) | Specifies if the Route53 internal hosted zone for the domain should be created. If if is set to false route53\_internal\_zone is required | `bool` | `true` | no |
 | <a name="input_custom_kms_key"></a> [custom\_kms\_key](#input\_custom\_kms\_key) | Specifies whether a custom KMS key should be used to encrypt instead of the default. We recommend to set it to true for production stand. | `bool` | `false` | no |
-| <a name="input_docker_grok_compute_tag"></a> [docker\_grok\_compute\_tag](#input\_docker\_grok\_compute\_tag) | Tag from Docker Hub for datagrok/grok\_compute image | `string` | `"latest"` | no |
-| <a name="input_docker_h2o_tag"></a> [docker\_h2o\_tag](#input\_docker\_h2o\_tag) | Tag from Docker Hub for datagrok/h2o image | `string` | `"latest"` | no |
+| <a name="input_docker_grok_compute_image"></a> [docker\_grok\_compute\_image](#input\_docker\_grok\_compute\_image) | Grok Compute Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/grok_compute"` | no |
+| <a name="input_docker_grok_compute_tag"></a> [docker\_grok\_compute\_tag](#input\_docker\_grok\_compute\_tag) | Tag from Docker registry for Grok Compute Docker Image | `string` | `"latest"` | no |
+| <a name="input_docker_h2o_image"></a> [docker\_h2o\_image](#input\_docker\_h2o\_image) | H2O Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/h2o"` | no |
+| <a name="input_docker_h2o_tag"></a> [docker\_h2o\_tag](#input\_docker\_h2o\_tag) | Tag from Docker registry for H2O Docker Image | `string` | `"latest"` | no |
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br>`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables<br>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br>    create_secret = bool<br>    password      = optional(string)<br>    user          = optional(string)<br>    secret_arn    = optional(string)<br>  })</pre> | `null` | no |
-| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker Hub for datagrok/jupyter\_kernel\_gateway image | `string` | `"latest"` | no |
-| <a name="input_docker_jn_tag"></a> [docker\_jn\_tag](#input\_docker\_jn\_tag) | Tag from Docker Hub for datagrok/jupyter\_notebook image | `string` | `"latest"` | no |
+| <a name="input_docker_jkg_image"></a> [docker\_jkg\_image](#input\_docker\_jkg\_image) | Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_kernel_gateway"` | no |
+| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no |
+| <a name="input_docker_jn_image"></a> [docker\_jn\_image](#input\_docker\_jn\_image) | Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_notebook"` | no |
+| <a name="input_docker_jn_tag"></a> [docker\_jn\_tag](#input\_docker\_jn\_tag) | Tag from Docker registry for Jupyter Notebook Docker Image | `string` | `"latest"` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
+| <a name="input_ecr_enabled"></a> [ecr\_enabled](#input\_ecr\_enabled) | n/a | `bool` | `false` | no |
+| <a name="input_ecr_image_scan_on_push"></a> [ecr\_image\_scan\_on\_push](#input\_ecr\_image\_scan\_on\_push) | n/a | `bool` | `true` | no |
+| <a name="input_ecr_image_tag_mutable"></a> [ecr\_image\_tag\_mutable](#input\_ecr\_image\_tag\_mutable) | n/a | `bool` | `true` | no |
 | <a name="input_ecs_cluster_insights"></a> [ecs\_cluster\_insights](#input\_ecs\_cluster\_insights) | Specifies whether Monitoring Insights for ECS cluster are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ecs_launch_type"></a> [ecs\_launch\_type](#input\_ecs\_launch\_type) | Launch type for datagrok containers. FARGATE and EC2 are available options. We recommend FARGATE for production stand. | `string` | `"FARGATE"` | no |
 | <a name="input_ecs_name"></a> [ecs\_name](#input\_ecs\_name) | The name of ECS cluster for Datagrok. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
