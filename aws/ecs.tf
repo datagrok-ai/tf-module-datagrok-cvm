@@ -73,7 +73,7 @@ module "ecs" {
 
 resource "aws_secretsmanager_secret" "docker_hub" {
   count       = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled ? 1 : 0
-  name        = "${local.full_name}_docker_hub"
+  name_prefix = "${local.full_name}_docker_hub"
   description = "Docker Hub token to download images"
   #checkov:skip=CKV_AWS_149:The KMS key is configurable
   kms_key_id              = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
@@ -105,15 +105,15 @@ resource "aws_ecr_repository" "ecr" {
 }
 
 resource "aws_ecr_repository_policy" "ecr" {
-  for_each   = var.ecr_enabled ? local.images : {}
+  for_each   = var.ecr_enabled && var.ecr_principal_restrict_access ? local.images : {}
   repository = aws_ecr_repository.ecr[each.key].name
   policy = jsonencode({
-    "Version" : "2008-10-17",
-    "Statement" : [
+    Version = "2008-10-17"
+    Statement = [
       {
-        "Effect" : "Allow",
-        "Principal" : "*",
-        "Action" : [
+        Effect    = "Allow"
+        Principal = concat([data.aws_caller_identity.current.arn], var.ecr_policy_principal)
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
           "ecr:CompleteLayerUpload",
