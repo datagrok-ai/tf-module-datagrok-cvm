@@ -17,19 +17,23 @@ locals {
   images = {
     grok_compute = {
       image = var.docker_grok_compute_image
-      tag   = var.docker_grok_compute_tag
+      tag   = var.docker_grok_compute_tag == "latest" ? "${var.docker_grok_compute_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_grok_compute_tag
     },
     jupyter_kernel_gateway = {
       image = var.docker_jkg_image
-      tag   = var.docker_jkg_tag
+      tag   = var.docker_jkg_tag == "latest" ? "${var.docker_jkg_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jkg_tag
     },
     jupyter_notebook = {
       image = var.docker_jn_image
-      tag   = var.docker_jn_tag
+      tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
     },
     h2o = {
       image = var.docker_h2o_image
-      tag   = var.docker_h2o_tag
+      tag   = var.docker_h2o_tag == "latest" ? "${var.docker_h2o_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_h2o_tag
+    },
+    "ecs-searchdomain-sidecar-${var.name}-${var.environment}" = {
+      image = "docker/ecs-searchdomain-sidecar"
+      tag   = "1.0"
     }
   }
 

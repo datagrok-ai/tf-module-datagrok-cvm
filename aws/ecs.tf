@@ -90,10 +90,9 @@ resource "aws_secretsmanager_secret_version" "docker_hub" {
 }
 
 resource "aws_ecr_repository" "ecr" {
-  for_each = var.ecr_enabled ? local.images : {}
-  name     = each.key
-  #checkov:skip=CKV_AWS_51:The ECR Image Tags immutability is configurable
-  image_tag_mutability = var.ecr_image_tag_mutable ? "MUTABLE" : "IMMUTABLE"
+  for_each             = var.ecr_enabled ? local.images : {}
+  name                 = each.key
+  image_tag_mutability = "IMMUTABLE"
   force_delete         = !var.termination_protection
   encryption_configuration {
     encryption_type = "KMS"
@@ -105,6 +104,30 @@ resource "aws_ecr_repository" "ecr" {
   tags = local.tags
 }
 
+resource "aws_ecr_repository_policy" "ecr" {
+  for_each   = var.ecr_enabled ? local.images : {}
+  repository = aws_ecr_repository.ecr[each.key].name
+  policy = jsonencode({
+    "Version" : "2008-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : "*",
+        "Action" : [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetLifecyclePolicy",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
+        ]
+      }
+    ]
+  })
+}
+
 # https://github.com/mathspace/terraform-aws-ecr-docker-image/blob/master/hash.shÏ
 #data "external" "docker_hash" {
 #  for_each = var.ecr_enabled ? local.images : {}
@@ -114,7 +137,7 @@ resource "aws_ecr_repository" "ecr" {
 resource "null_resource" "ecr_push" {
   for_each = var.ecr_enabled ? local.images : {}
   triggers = {
-    tag   = each.value["tag"] == "latest" ? "${each.value["tag"]}-${timestamp()}" : each.value["tag"]
+    tag   = each.value["tag"]
     image = each.value["image"]
   }
 
@@ -157,11 +180,16 @@ resource "aws_iam_policy" "ecr" {
     "Version" = "2012-10-17",
     "Statement" = [
       {
+        "Action" : "ecr:GetAuthorizationToken",
+        "Condition" = {},
+        "Effect" : "Allow",
+        "Resource" : "*"
+      },
+      {
         "Action" = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer",
-          "ecr:GetAuthorizationToken"
         ],
         "Condition" = {},
         "Effect"    = "Allow",
@@ -180,16 +208,24 @@ resource "aws_iam_policy" "docker_hub" {
 
   policy = jsonencode({
     "Version" = "2012-10-17",
-    "Statement" = [
+    "Statement" = concat([
       {
-        "Action"    = ["secretsmanager:GetSecretValue"],
-        "Condition" = {},
-        "Effect"    = "Allow",
-        "Resource" = [
+        Action    = ["secretsmanager:GetSecretValue"],
+        Condition = {},
+        Effect    = "Allow",
+        Resource = [
           try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
         ]
-      }
-    ]
+      }],
+      var.custom_kms_key ? [{
+        Action    = ["kms:Decrypt"],
+        Condition = {},
+        Effect    = "Allow",
+        Resource = [
+          try(module.kms[0].key_arn, var.kms_key)
+        ]
+      }] : []
+    )
   })
 }
 
@@ -252,7 +288,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
         "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
-      image     = "docker/ecs-searchdomain-sidecar:1.0"
+      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
       logConfiguration = {
         LogDriver = "awslogs"
         Options = {
@@ -264,7 +300,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       memoryReservation = 100
       }, merge({
         name  = "grok_compute"
-        image = "${var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
+        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : local.images["grok_compute"]["image"]}:${local.images["grok_compute"]["tag"]}"
         dependsOn = [
           {
             "condition" : "SUCCESS",
@@ -314,7 +350,7 @@ resource "aws_ecs_task_definition" "jkg" {
         "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
-      image     = "docker/ecs-searchdomain-sidecar:1.0"
+      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
@@ -327,7 +363,7 @@ resource "aws_ecs_task_definition" "jkg" {
     },
     merge({
       name  = "jupyter_kernel_gateway"
-      image = "${var.docker_jkg_image}:${var.docker_jkg_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : local.images["jupyter_kernel_gateway"]["image"]}:${local.images["jupyter_kernel_gateway"]["tag"]}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -392,7 +428,7 @@ resource "aws_ecs_task_definition" "jn" {
         "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
-      image     = "docker/ecs-searchdomain-sidecar:1.0"
+      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
@@ -405,7 +441,7 @@ resource "aws_ecs_task_definition" "jn" {
     },
     merge({
       name  = "jupyter_notebook"
-      image = "${var.docker_jn_image}:${var.docker_jn_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_notebook"].repository_url : local.images["jupyter_notebook"]["image"]}:${local.images["jupyter_notebook"]["tag"]}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -458,7 +494,7 @@ resource "aws_ecs_task_definition" "h2o" {
         "datagrok.${var.name}.${var.environment}.local"
       ]
       essential = false
-      image     = "docker/ecs-searchdomain-sidecar:1.0"
+      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
@@ -471,7 +507,7 @@ resource "aws_ecs_task_definition" "h2o" {
     },
     merge({
       name  = "h2o"
-      image = "${var.docker_h2o_image}:${var.docker_h2o_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : local.images["h2o"]["image"]}:${local.images["h2o"]["tag"]}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
