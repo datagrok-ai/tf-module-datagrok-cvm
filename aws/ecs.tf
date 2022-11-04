@@ -300,7 +300,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       memoryReservation = 100
       }, merge({
         name  = "grok_compute"
-        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : local.images["grok_compute"]["image"]}:${local.images["grok_compute"]["tag"]}"
+        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
         dependsOn = [
           {
             "condition" : "SUCCESS",
@@ -363,7 +363,7 @@ resource "aws_ecs_task_definition" "jkg" {
     },
     merge({
       name  = "jupyter_kernel_gateway"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : local.images["jupyter_kernel_gateway"]["image"]}:${local.images["jupyter_kernel_gateway"]["tag"]}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : var.docker_jkg_image}:${var.docker_jkg_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -441,7 +441,7 @@ resource "aws_ecs_task_definition" "jn" {
     },
     merge({
       name  = "jupyter_notebook"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_notebook"].repository_url : local.images["jupyter_notebook"]["image"]}:${local.images["jupyter_notebook"]["tag"]}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_notebook"].repository_url : var.docker_jn_image}:${var.docker_jn_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -507,7 +507,7 @@ resource "aws_ecs_task_definition" "h2o" {
     },
     merge({
       name  = "h2o"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : local.images["h2o"]["image"]}:${local.images["h2o"]["tag"]}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : var.docker_h2o_image}:${var.docker_h2o_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
