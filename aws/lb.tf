@@ -53,17 +53,10 @@ module "lb_int_sg" {
 
   ingress_with_cidr_blocks = [
     {
-      from_port   = 8080
-      to_port     = 8080
-      protocol    = "tcp"
-      description = "Access to Datagrok Nginx"
-      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
-    },
-    {
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
-      description = "Access to Datagrok Nginx"
+      description = "Access to HTTP"
       cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
   ]
