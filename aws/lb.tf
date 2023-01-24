@@ -89,6 +89,13 @@ module "lb_int_sg" {
       description = "Access to h20h"
       cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
+    {
+      from_port   = 8090
+      to_port     = 8090
+      protocol    = "tcp"
+      description = "Access Datagrok to CVM"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
   ]
 }
 resource "aws_route53_zone" "external" {
