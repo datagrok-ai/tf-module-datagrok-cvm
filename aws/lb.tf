@@ -61,6 +61,20 @@ module "lb_int_sg" {
       description = "Access to HTTP"
       cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
+    {
+      from_port   = 54321
+      to_port     = 54321
+      protocol    = "tcp"
+      description = "Access to h20"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
+    {
+      from_port   = 5005
+      to_port     = 5005
+      protocol    = "tcp"
+      description = "Access to h20h"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
   ]
 }
 resource "aws_route53_zone" "external" {
