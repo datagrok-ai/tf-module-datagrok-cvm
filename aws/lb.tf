@@ -37,14 +37,14 @@ module "lb_ext_sg" {
       to_port     = 54321
       protocol    = "tcp"
       description = "Access to h20"
-      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+      cidr_blocks = var.lb_access_cidr_blocks
     },
     {
       from_port   = 5005
       to_port     = 5005
       protocol    = "tcp"
       description = "Access to h20h"
-      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+      cidr_blocks = var.lb_access_cidr_blocks
     },
   ]
 }
