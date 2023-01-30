@@ -3,6 +3,7 @@ module "lb_ext_sg" {
   version = "~> 4.12.0"
 
   name        = local.lb_name
+#  name        = "${local.lb_name}-lb-ext"
   description = "${local.lb_name} Datagrok LB Security Group"
   vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
@@ -38,6 +39,7 @@ module "lb_int_sg" {
   version = "~> 4.12.0"
 
   name        = "${local.lb_name}-int"
+#  name        = "${local.lb_name}-lb-int"
   description = "${local.lb_name}-int Datagrok LB Security Group"
   vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
@@ -102,6 +104,8 @@ module "lb_ext" {
   subnets                    = try(module.vpc[0].public_subnets, var.public_subnet_ids)
   security_groups            = [module.lb_ext_sg.security_group_id]
   drop_invalid_header_fields = true
+
+  idle_timeout = 600
 
   access_logs = var.bucket_logging.enabled ? {
     bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
@@ -240,6 +244,8 @@ module "lb_int" {
   subnets                    = try(module.vpc[0].private_subnets, var.private_subnet_ids)
   security_groups            = [module.lb_int_sg.security_group_id]
   drop_invalid_header_fields = true
+
+  idle_timeout = 600
 
   access_logs = var.bucket_logging.enabled ? {
     bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
