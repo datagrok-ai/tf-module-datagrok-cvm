@@ -2,8 +2,8 @@ module "lb_ext_sg" {
   source  = "registry.terraform.io/terraform-aws-modules/security-group/aws"
   version = "~> 4.12.0"
 
-  name        = local.lb_name
-#  name        = "${local.lb_name}-lb-ext"
+  name = local.lb_name
+  #  name        = "${local.lb_name}-lb-ext"
   description = "${local.lb_name} Datagrok LB Security Group"
   vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
@@ -38,8 +38,8 @@ module "lb_int_sg" {
   source  = "registry.terraform.io/terraform-aws-modules/security-group/aws"
   version = "~> 4.12.0"
 
-  name        = "${local.lb_name}-int"
-#  name        = "${local.lb_name}-lb-int"
+  name = "${local.lb_name}-int"
+  #  name        = "${local.lb_name}-lb-int"
   description = "${local.lb_name}-int Datagrok LB Security Group"
   vpc_id      = try(module.vpc[0].vpc_id, var.vpc_id)
 
