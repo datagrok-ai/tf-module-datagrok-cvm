@@ -162,10 +162,10 @@ resource "aws_iam_policy" "exec" {
           "logs:PutLogEvents"
         ],
         "Effect" = "Allow",
-        "Resource" = [
+        "Resource" = compact([
           var.create_cloudwatch_log_group ? aws_cloudwatch_log_group.ecs[0].arn : var.cloudwatch_log_group_arn,
           "${var.create_cloudwatch_log_group ? aws_cloudwatch_log_group.ecs[0].arn : var.cloudwatch_log_group_arn}:log-stream:*"
-        ]
+        ])
       }
     ]
   })
@@ -202,7 +202,7 @@ resource "aws_iam_policy" "ecr" {
 }
 
 resource "aws_iam_policy" "docker_hub" {
-  count       = !var.ecr_enabled ? 1 : 0
+  count       = !var.ecr_enabled && try(var.docker_hub_credentials.create_secret, false) ? 1 : 0
   name        = "${local.ecs_name}_docker_hub"
   description = "Datagrok Docker Hub credentials policy for ECS task"
 
@@ -245,10 +245,11 @@ resource "aws_iam_role" "exec" {
       },
     ]
   })
-  managed_policy_arns = [
+  managed_policy_arns = compact([
     aws_iam_policy.exec.arn,
-    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
-  ]
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (
+    try(var.docker_hub_credentials.create_secret, false) ? aws_iam_policy.docker_hub[0].arn : "")
+  ])
 
   tags = local.tags
 }
@@ -268,15 +269,17 @@ resource "aws_iam_role" "task" {
       },
     ]
   })
-  managed_policy_arns = [
+  managed_policy_arns = compact([
     aws_iam_policy.exec.arn,
-    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
-  ]
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (
+    try(var.docker_hub_credentials.create_secret, false) ? aws_iam_policy.docker_hub[0].arn : "")
+  ])
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
 }
 resource "aws_ecs_task_definition" "grok_compute" {
+  depends_on = [null_resource.ecr_push]
   family = "${local.ecs_name}_grok_compute"
 
   container_definitions = jsonencode([
@@ -300,7 +303,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       memoryReservation = 100
       }, merge({
         name  = "grok_compute"
-        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.docker_grok_compute_tag}"
+        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.ecr_enabled ? local.images["grok_compute"]["tag"] : var.docker_datagrok_tag}"
         dependsOn = [
           {
             "condition" : "SUCCESS",
@@ -325,7 +328,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
         ]
         memoryReservation = var.grok_compute_container_memory_reservation
         cpu               = var.grok_compute_container_cpu
-        }, var.ecr_enabled ? {} : {
+        }, var.ecr_enabled || !try(var.docker_hub_credentials.create_secret, false) ? {} : {
         repositoryCredentials = {
           credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
         }
@@ -339,6 +342,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
   requires_compatibilities = [var.ecs_launch_type]
 }
 resource "aws_ecs_task_definition" "jkg" {
+  depends_on = [null_resource.ecr_push]
   family = "${local.ecs_name}_jupyter_kernel_gateway"
 
   container_definitions = jsonencode([
@@ -363,7 +367,7 @@ resource "aws_ecs_task_definition" "jkg" {
     },
     merge({
       name  = "jupyter_kernel_gateway"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : var.docker_jkg_image}:${var.docker_jkg_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : var.docker_jkg_image}:${var.ecr_enabled ? local.images["jupyter_kernel_gateway"]["tag"] : var.docker_jkg_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -391,7 +395,7 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       memoryReservation = var.jkg_container_memory_reservation
       cpu               = var.jkg_container_cpu
-      }, var.ecr_enabled ? {} : {
+      }, var.ecr_enabled || !try(var.docker_hub_credentials.create_secret, false) ? {} : {
       repositoryCredentials = {
         credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
       }
@@ -417,6 +421,7 @@ resource "aws_ecs_task_definition" "jkg" {
   requires_compatibilities = [var.ecs_launch_type]
 }
 resource "aws_ecs_task_definition" "jn" {
+  depends_on = [null_resource.ecr_push]
   family = "${local.ecs_name}_jupyter_notebook"
 
   container_definitions = jsonencode([
@@ -441,7 +446,7 @@ resource "aws_ecs_task_definition" "jn" {
     },
     merge({
       name  = "jupyter_notebook"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_notebook"].repository_url : var.docker_jn_image}:${var.docker_jn_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_notebook"].repository_url : var.docker_jn_image}:${var.ecr_enabled ? local.images["jupyter_notebook"]["tag"] : var.docker_jn_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -469,7 +474,7 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       memoryReservation = var.jn_container_memory_reservation
       cpu               = var.jn_container_cpu
-      }, var.ecr_enabled ? {} : {
+      }, var.ecr_enabled || !try(var.docker_hub_credentials.create_secret, false) ? {} : {
       repositoryCredentials = {
         credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
       }
@@ -483,6 +488,7 @@ resource "aws_ecs_task_definition" "jn" {
   requires_compatibilities = [var.ecs_launch_type]
 }
 resource "aws_ecs_task_definition" "h2o" {
+  depends_on = [null_resource.ecr_push]
   family = "${local.ecs_name}_h2o"
 
   container_definitions = jsonencode([
@@ -507,7 +513,7 @@ resource "aws_ecs_task_definition" "h2o" {
     },
     merge({
       name  = "h2o"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : var.docker_h2o_image}:${var.docker_h2o_tag}"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : var.docker_h2o_image}:${var.ecr_enabled ? local.images["h2o"]["tag"] : var.docker_h2o_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -535,7 +541,7 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       memoryReservation = var.h2o_container_memory_reservation
       cpu               = var.h2o_container_cpu
-      }, var.ecr_enabled ? {} : {
+      }, var.ecr_enabled || !try(var.docker_hub_credentials.create_secret, false) ? {} : {
       repositoryCredentials = {
         credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
       }
@@ -1010,11 +1016,12 @@ resource "aws_iam_role" "ec2" {
       },
     ]
   })
-  managed_policy_arns = [
+  managed_policy_arns = compact([
     aws_iam_policy.exec.arn,
-    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn,
+    var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (
+    try(var.docker_hub_credentials.create_secret, false) ? aws_iam_policy.docker_hub[0].arn : ""),
     aws_iam_policy.ec2.arn
-  ]
+  ])
 
   tags = local.tags
 }
