@@ -280,7 +280,7 @@ resource "aws_iam_role" "task" {
 }
 resource "aws_ecs_task_definition" "grok_compute" {
   depends_on = [null_resource.ecr_push]
-  family = "${local.ecs_name}_grok_compute"
+  family     = "${local.ecs_name}_grok_compute"
 
   container_definitions = jsonencode([
     {
@@ -343,7 +343,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
 }
 resource "aws_ecs_task_definition" "jkg" {
   depends_on = [null_resource.ecr_push]
-  family = "${local.ecs_name}_jupyter_kernel_gateway"
+  family     = "${local.ecs_name}_jupyter_kernel_gateway"
 
   container_definitions = jsonencode([
     {
@@ -422,7 +422,7 @@ resource "aws_ecs_task_definition" "jkg" {
 }
 resource "aws_ecs_task_definition" "jn" {
   depends_on = [null_resource.ecr_push]
-  family = "${local.ecs_name}_jupyter_notebook"
+  family     = "${local.ecs_name}_jupyter_notebook"
 
   container_definitions = jsonencode([
     {
@@ -489,7 +489,7 @@ resource "aws_ecs_task_definition" "jn" {
 }
 resource "aws_ecs_task_definition" "h2o" {
   depends_on = [null_resource.ecr_push]
-  family = "${local.ecs_name}_h2o"
+  family     = "${local.ecs_name}_h2o"
 
   container_definitions = jsonencode([
     {
