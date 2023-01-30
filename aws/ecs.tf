@@ -303,7 +303,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       memoryReservation = 100
       }, merge({
         name  = "grok_compute"
-        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.ecr_enabled ? local.images["grok_compute"]["tag"] : var.docker_datagrok_tag}"
+        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.ecr_enabled ? local.images["grok_compute"]["tag"] : var.docker_grok_compute_tag}"
         dependsOn = [
           {
             "condition" : "SUCCESS",
