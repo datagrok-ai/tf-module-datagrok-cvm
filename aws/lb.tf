@@ -32,6 +32,20 @@ module "lb_ext_sg" {
       description = "Access to HTTPS"
       cidr_blocks = var.lb_access_cidr_blocks
     },
+    {
+      from_port   = 54321
+      to_port     = 54321
+      protocol    = "tcp"
+      description = "Access to h20"
+      cidr_blocks = var.lb_access_cidr_blocks
+    },
+    {
+      from_port   = 5005
+      to_port     = 5005
+      protocol    = "tcp"
+      description = "Access to h20h"
+      cidr_blocks = var.lb_access_cidr_blocks
+    },
   ]
 }
 module "lb_int_sg" {
@@ -59,6 +73,27 @@ module "lb_int_sg" {
       to_port     = 80
       protocol    = "tcp"
       description = "Access to HTTP"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
+    {
+      from_port   = 54321
+      to_port     = 54321
+      protocol    = "tcp"
+      description = "Access to h20"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
+    {
+      from_port   = 5005
+      to_port     = 5005
+      protocol    = "tcp"
+      description = "Access to h20h"
+      cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
+    },
+    {
+      from_port   = 8090
+      to_port     = 8090
+      protocol    = "tcp"
+      description = "Access Datagrok to CVM"
       cidr_blocks = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
   ]
@@ -240,6 +275,7 @@ module "lb_int" {
 
   name                       = "${local.lb_name}-int"
   load_balancer_type         = "application"
+  internal                   = true
   vpc_id                     = try(module.vpc[0].vpc_id, var.vpc_id)
   subnets                    = try(module.vpc[0].private_subnets, var.private_subnet_ids)
   security_groups            = [module.lb_int_sg.security_group_id]
