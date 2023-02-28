@@ -464,3 +464,13 @@ resource "aws_route53_record" "internal" {
     evaluate_target_health = true
   }
 }
+resource "aws_route53_record" "h2o" {
+  zone_id = var.create_route53_internal_zone ? aws_route53_zone.internal[0].id : var.route53_internal_zone
+  name    = "h2o.datagrok.${var.name}.${var.environment}.internal"
+  type    = "A"
+  alias {
+    name                   = module.lb_int.lb_dns_name
+    zone_id                = module.lb_int.lb_zone_id
+    evaluate_target_health = true
+  }
+}
