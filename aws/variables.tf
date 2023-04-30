@@ -294,7 +294,7 @@ variable "service_discovery_namespace" {
   nullable = false
   validation {
     condition     = (var.service_discovery_namespace.id != null && !var.service_discovery_namespace.create) || (var.service_discovery_namespace.id == null && var.service_discovery_namespace.create)
-    error_message = "Either create_log_bucket or AWS Log Bucket ID should be specified."
+    error_message = "Either id or create should be specified."
   }
   description = "Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one."
 }

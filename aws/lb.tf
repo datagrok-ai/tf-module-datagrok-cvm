@@ -1,3 +1,13 @@
+resource "random_string" "lb_id" {
+  for_each = {
+    for target in local.targets:
+    target.name => target
+  }
+  length  = 2
+  special = false
+  keepers = { target_type = each.value["target_type"] }
+}
+
 module "lb_ext_sg" {
   source  = "registry.terraform.io/terraform-aws-modules/security-group/aws"
   version = "~> 4.12.0"
@@ -138,7 +148,7 @@ module "lb_ext" {
   security_groups            = [module.lb_ext_sg.security_group_id]
   drop_invalid_header_fields = true
 
-  idle_timeout = 600
+  idle_timeout = 1200
 
   access_logs = var.bucket_logging.enabled ? {
     bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
@@ -146,7 +156,7 @@ module "lb_ext" {
     enabled = true
   } : { bucket = "", enabled = false }
 
-  target_groups = [for target in local.targets : merge(target, { name = "${local.lb_name}-ext-${target["name"]}" })]
+  target_groups = [for target in local.targets : merge(target, { name = "${local.lb_name}-ext-${target["name"]}${random_string.lb_id[target["name"]].result}" })]
 
   https_listeners = [
     {
@@ -279,7 +289,7 @@ module "lb_int" {
   security_groups            = [module.lb_int_sg.security_group_id]
   drop_invalid_header_fields = true
 
-  idle_timeout = 600
+  idle_timeout = 1200
 
   access_logs = var.bucket_logging.enabled ? {
     bucket  = var.bucket_logging.create_log_bucket ? module.log_bucket.s3_bucket_id : var.bucket_logging.log_bucket
@@ -287,7 +297,7 @@ module "lb_int" {
     enabled = true
   } : { bucket = "", enabled = false }
 
-  target_groups = [for target in local.targets : merge(target, { name = "${local.lb_name}-int-${target["name"]}" })]
+  target_groups = [for target in local.targets : merge(target, { name = "${local.lb_name}-int-${target["name"]}${random_string.lb_id[target["name"]].result}" })]
 
   http_tcp_listeners = [
     {
@@ -453,6 +463,9 @@ resource "aws_route53_zone" "internal" {
   count = var.create_route53_internal_zone ? 1 : 0
   name  = "datagrok.${var.name}.${var.environment}.internal"
   tags  = local.tags
+  vpc {
+    vpc_id = try(module.vpc[0].vpc_id, var.vpc_id)
+  }
 }
 resource "aws_route53_record" "internal" {
   zone_id = var.create_route53_internal_zone ? aws_route53_zone.internal[0].id : var.route53_internal_zone
