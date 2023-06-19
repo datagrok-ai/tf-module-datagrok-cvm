@@ -22,7 +22,7 @@ module "datagrok_cvm" {
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.36.1 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.4.3 |
 
@@ -30,8 +30,8 @@ module "datagrok_cvm" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.36.1 |
-| <a name="provider_aws.datagrok-cloudwatch-r53-external"></a> [aws.datagrok-cloudwatch-r53-external](#provider\_aws.datagrok-cloudwatch-r53-external) | >= 4.36.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0.0 |
+| <a name="provider_aws.datagrok-cloudwatch-r53-external"></a> [aws.datagrok-cloudwatch-r53-external](#provider\_aws.datagrok-cloudwatch-r53-external) | >= 5.0.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | >= 3.2.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | >= 3.4.3 |
 
@@ -50,7 +50,7 @@ module "datagrok_cvm" {
 | <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | registry.terraform.io/terraform-aws-modules/notify-slack/aws | ~> 5.4.0 |
 | <a name="module_sg"></a> [sg](#module\_sg) | registry.terraform.io/terraform-aws-modules/security-group/aws | ~> 4.12.0 |
 | <a name="module_sns_topic"></a> [sns\_topic](#module\_sns\_topic) | registry.terraform.io/terraform-aws-modules/sns/aws | ~> 3.3.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | registry.terraform.io/terraform-aws-modules/vpc/aws | ~> 3.14.2 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | registry.terraform.io/terraform-aws-modules/vpc/aws | ~> 5.0.0 |
 
 ## Resources
 
