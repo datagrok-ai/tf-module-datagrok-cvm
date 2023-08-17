@@ -286,7 +286,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.local"
+        "datagrok.${var.name}.${var.environment}.cn.internal"
       ]
       essential = false
       image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
@@ -349,7 +349,7 @@ resource "aws_ecs_task_definition" "jkg" {
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.local"
+        "datagrok.${var.name}.${var.environment}.cn.internal"
       ]
       essential = false
       image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
@@ -428,7 +428,7 @@ resource "aws_ecs_task_definition" "jn" {
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.local"
+        "datagrok.${var.name}.${var.environment}.cn.internal"
       ]
       essential = false
       image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
@@ -495,7 +495,7 @@ resource "aws_ecs_task_definition" "h2o" {
       command = [
         "${data.aws_region.current.name}.compute.internal",
         "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.local"
+        "datagrok.${var.name}.${var.environment}.cn.internal"
       ]
       essential = false
       image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
@@ -554,7 +554,7 @@ resource "aws_ecs_task_definition" "h2o" {
 }
 resource "aws_service_discovery_private_dns_namespace" "datagrok" {
   count       = var.service_discovery_namespace.create && var.ecs_launch_type == "FARGATE" ? 1 : 0
-  name        = "datagrok.${var.name}.${var.environment}.local"
+  name        = "datagrok.${var.name}.${var.environment}.cn.internal"
   description = "Datagrok Service Discovery"
   vpc         = try(module.vpc[0].vpc_id, var.vpc_id)
 }
