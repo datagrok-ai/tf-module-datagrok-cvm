@@ -106,6 +106,11 @@ module "lb_int_sg" {
     },
   ]
 }
+data "aws_route53_zone" "external" {
+  count        = !var.create_route53_external_zone && var.route53_enabled ? 1 : 0
+  name         = var.domain_name
+  private_zone = false
+}
 resource "aws_route53_zone" "external" {
   count = var.create_route53_external_zone && var.route53_enabled ? 1 : 0
   name  = var.domain_name
@@ -117,7 +122,7 @@ module "acm" {
   count   = var.acm_cert_create ? 1 : 0
 
   domain_name       = var.domain_name
-  zone_id           = var.route53_enabled ? var.route53_external_zone : null
+  zone_id           = var.route53_enabled && var.create_route53_external_zone ? aws_route53_zone.external[0].zone_id : data.aws_route53_zone.external[0].zone_id
   validation_method = "DNS"
 
   subject_alternative_names = var.subject_alternative_names
@@ -450,7 +455,7 @@ resource "aws_route53_query_log" "external" {
 
 resource "aws_route53_record" "external" {
   count   = var.route53_enabled ? 1 : 0
-  zone_id = var.create_route53_external_zone ? aws_route53_zone.external[0].id : var.route53_external_zone
+  zone_id = var.create_route53_external_zone ? aws_route53_zone.external[0].id : data.aws_route53_zone.external[0].id
   name    = local.r53_record
   type    = "A"
   alias {
