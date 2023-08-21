@@ -112,6 +112,7 @@ module "datagrok_cvm" {
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 
 ## Inputs
 
@@ -184,7 +185,6 @@ module "datagrok_cvm" {
 | <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | The IDs of public subnets to place resources. Required if 'vpc\_id' is specified. | `list(string)` | `[]` | no |
 | <a name="input_root_volume_throughput"></a> [root\_volume\_throughput](#input\_root\_volume\_throughput) | EC2 root volume throughput. | `number` | `null` | no |
 | <a name="input_route53_enabled"></a> [route53\_enabled](#input\_route53\_enabled) | Specifies if the Route53 is used for DNS. | `bool` | `true` | no |
-| <a name="input_route53_external_zone"></a> [route53\_external\_zone](#input\_route53\_external\_zone) | Route53 external hosted zone ID. If it is not set create\_route53\_external\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_internal_zone"></a> [route53\_internal\_zone](#input\_route53\_internal\_zone) | Route53 internal hosted zone ID. If it is not set create\_route53\_internal\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_record_name"></a> [route53\_record\_name](#input\_route53\_record\_name) | This is the name of record in Route53 for Datagrok. If if is not set the name along with environment will be used. | `string` | `null` | no |
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br>    create = bool<br>    id     = optional(string)<br>  })</pre> | <pre>{<br>  "create": true<br>}</pre> | no |
