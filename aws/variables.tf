@@ -542,34 +542,6 @@ variable "jkg_cpu" {
   description = "Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task."
 }
 
-variable "jn_container_memory_reservation" {
-  type        = number
-  default     = 1024
-  nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container."
-}
-
-variable "jn_container_cpu" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container."
-}
-
-variable "jn_memory" {
-  type        = number
-  default     = 2048
-  nullable    = false
-  description = "Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task."
-}
-
-variable "jn_cpu" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task."
-}
-
 variable "h2o_container_memory_reservation" {
   type        = number
   default     = 1024
