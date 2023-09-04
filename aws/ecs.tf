@@ -886,8 +886,8 @@ resource "aws_ecs_service" "h2o" {
   launch_type     = var.ecs_launch_type
 
   desired_count                      = 1
-  deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = var.ecs_launch_type == "FARGATE" ? 200 : 100
+  deployment_minimum_healthy_percent = var.ecs_launch_type == "FARGATE" ? 100 : 0
   scheduling_strategy                = "REPLICA"
   deployment_controller {
     type = "ECS"
