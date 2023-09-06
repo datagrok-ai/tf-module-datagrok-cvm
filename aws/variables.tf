@@ -390,32 +390,18 @@ variable "docker_grok_compute_tag" {
   description = "Tag from Docker registry for Grok Compute Docker Image"
 }
 
-variable "docker_jkg_image" {
+variable "docker_jupyter_image" {
   type        = string
-  default     = "docker.io/datagrok/jupyter_kernel_gateway"
+  default     = "docker.io/datagrok/jupyter"
   nullable    = false
-  description = "Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used."
+  description = "Jupyter Docker Image registry location. By default the official image from Docker Hub will be used."
 }
 
-variable "docker_jkg_tag" {
+variable "docker_jupyter_tag" {
   type        = string
   default     = "latest"
   nullable    = false
-  description = "Tag from Docker registry for Jupyter Kernel Gateway Docker Image"
-}
-
-variable "docker_jn_image" {
-  type        = string
-  default     = "docker.io/datagrok/jupyter_notebook"
-  nullable    = false
-  description = "Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used."
-}
-
-variable "docker_jn_tag" {
-  type        = string
-  default     = "latest"
-  nullable    = false
-  description = "Tag from Docker registry for Jupyter Notebook Docker Image"
+  description = "Tag from Docker registry for Jupyter Docker Image"
 }
 
 variable "docker_h2o_image" {
@@ -514,32 +500,32 @@ variable "grok_compute_cpu" {
   description = "Number of cpu units used by the Grok Compute FARGATE task. The hard limit of CPU units to present for the task."
 }
 
-variable "jkg_container_memory_reservation" {
+variable "jupyter_container_memory_reservation" {
   type        = number
   default     = 2048
   nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container."
+  description = "The soft limit (in MiB) of memory to reserve for the Jupyter container."
 }
 
-variable "jkg_container_cpu" {
+variable "jupyter_container_cpu" {
   type        = number
   default     = 1024
   nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container."
+  description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter container."
 }
 
-variable "jkg_memory" {
+variable "jupyter_memory" {
   type        = number
   default     = 3072
   nullable    = false
-  description = "Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task."
+  description = "Amount (in MiB) of memory used by the Jupyter FARGATE task. The hard limit of memory (in MiB) to present to the task."
 }
 
-variable "jkg_cpu" {
+variable "jupyter_cpu" {
   type        = number
   default     = 1024
   nullable    = false
-  description = "Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task."
+  description = "Number of cpu units used by the Jupyter FARGATE task. The hard limit of CPU units to present for the task."
 }
 
 variable "h2o_container_memory_reservation" {

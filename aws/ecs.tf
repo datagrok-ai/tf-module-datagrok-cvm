@@ -339,9 +339,9 @@ resource "aws_ecs_task_definition" "grok_compute" {
   task_role_arn            = aws_iam_role.task.arn
   requires_compatibilities = [var.ecs_launch_type]
 }
-resource "aws_ecs_task_definition" "jkg" {
+resource "aws_ecs_task_definition" "jupyter" {
   depends_on = [null_resource.ecr_push]
-  family     = "${local.ecs_name}_jupyter_kernel_gateway"
+  family     = "${local.ecs_name}_jupyter"
 
   container_definitions = jsonencode([
     {
@@ -358,14 +358,14 @@ resource "aws_ecs_task_definition" "jkg" {
         Options = {
           awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
           awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "jupyter_kernel_gateway"
+          awslogs-stream-prefix = "jupyter"
         }
       }
       memoryReservation = 100
     },
     merge({
-      name  = "jupyter_kernel_gateway"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter_kernel_gateway"].repository_url : var.docker_jkg_image}:${var.ecr_enabled ? local.images["jupyter_kernel_gateway"]["tag"] : var.docker_jkg_tag}"
+      name  = "jupyter"
+      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter"].repository_url : var.docker_jupyter_image}:${var.ecr_enabled ? local.images["jupyter"]["tag"] : var.docker_jupyter_tag}"
       dependsOn = [
         {
           "condition" : "SUCCESS",
@@ -378,7 +378,7 @@ resource "aws_ecs_task_definition" "jkg" {
         Options = {
           awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
           awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "jupyter_kernel_gateway"
+          awslogs-stream-prefix = "jupyter"
         }
       }
       portMappings = [
@@ -395,8 +395,8 @@ resource "aws_ecs_task_definition" "jkg" {
           hostPort      = var.ecs_launch_type == "FARGATE" ? 8889 : 0
         },
       ]
-      memoryReservation = var.jkg_container_memory_reservation
-      cpu               = var.jkg_container_cpu
+      memoryReservation = var.jupyter_container_memory_reservation
+      cpu               = var.jupyter_container_cpu
       }, var.ecr_enabled ? {} : {
       repositoryCredentials = {
         credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
@@ -415,8 +415,8 @@ resource "aws_ecs_task_definition" "jkg" {
     }
   }
 
-  cpu                      = var.ecs_launch_type == "FARGATE" ? var.jkg_cpu : null
-  memory                   = var.ecs_launch_type == "FARGATE" ? var.jkg_memory : null
+  cpu                      = var.ecs_launch_type == "FARGATE" ? var.jupyter_cpu : null
+  memory                   = var.ecs_launch_type == "FARGATE" ? var.jupyter_memory : null
   network_mode             = var.ecs_launch_type == "FARGATE" ? "awsvpc" : "bridge"
   execution_role_arn       = aws_iam_role.exec.arn
   task_role_arn            = aws_iam_role.task.arn
@@ -515,10 +515,10 @@ resource "aws_service_discovery_service" "grok_compute" {
     failure_threshold = 1
   }
 }
-resource "aws_service_discovery_service" "jkg" {
+resource "aws_service_discovery_service" "jupyter" {
   count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
-  name        = "jupyter_kernel_gateway"
-  description = "Datagrok CVM JKG service discovery entry"
+  name        = "jupyter"
+  description = "Datagrok CVM jupyter service discovery entry"
 
   dns_config {
     namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
@@ -668,10 +668,10 @@ resource "aws_ecs_service" "grok_compute" {
     }
   }
 }
-resource "aws_ecs_service" "jkg" {
-  name            = "${local.ecs_name}_jupyter_kernel_gateway"
+resource "aws_ecs_service" "jupyter" {
+  name            = "${local.ecs_name}_jupyter"
   cluster         = module.ecs.cluster_arn
-  task_definition = aws_ecs_task_definition.jkg.arn
+  task_definition = aws_ecs_task_definition.jupyter.arn
   launch_type     = var.ecs_launch_type
 
   desired_count                      = 1
@@ -684,12 +684,12 @@ resource "aws_ecs_service" "jkg" {
   enable_execute_command = true
   force_new_deployment   = true
 
-  #  iam_role = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
+  #  iam_role = aws_ecs_task_definition.jupyter.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
 
   dynamic "service_registries" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
-        registry_arn : aws_service_discovery_service.jkg[0].arn
+        registry_arn : aws_service_discovery_service.jupyter[0].arn
       }
     ] : []
     content {
@@ -699,32 +699,32 @@ resource "aws_ecs_service" "jkg" {
 
   load_balancer {
     target_group_arn = module.lb_ext.target_group_arns[1]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 8888
   }
   load_balancer {
     target_group_arn = module.lb_ext.target_group_arns[2]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 5005
   }
   load_balancer {
     target_group_arn = module.lb_int.target_group_arns[1]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 8888
   }
   load_balancer {
     target_group_arn = module.lb_int.target_group_arns[2]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 5005
   }
   load_balancer {
     target_group_arn = module.lb_ext.target_group_arns[3]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 8889
   }
   load_balancer {
     target_group_arn = module.lb_int.target_group_arns[3]
-    container_name   = "jupyter_kernel_gateway"
+    container_name   = "jupyter"
     container_port   = 8889
   }
 
