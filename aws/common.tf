@@ -20,13 +20,13 @@ locals {
       tag   = var.docker_grok_compute_tag == "latest" ? "${var.docker_grok_compute_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_grok_compute_tag
     },
     jupyter_kernel_gateway = {
-      image = var.docker_jkg_image
-      tag   = var.docker_jkg_tag == "latest" ? "${var.docker_jkg_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jkg_tag
+      image = var.docker_jupyter_image
+      tag   = var.docker_jupyter_tag == "bleeding-edge" ? "${var.docker_jupyter_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jupyter_tag
     },
-    jupyter_notebook = {
-      image = var.docker_jn_image
-      tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
-    },
+//    jupyter_notebook = {
+//      image = var.docker_jn_image
+//      tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
+//    },
     h2o = {
       image = var.docker_h2o_image
       tag   = var.docker_h2o_tag == "latest" ? "${var.docker_h2o_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_h2o_tag
@@ -90,19 +90,19 @@ locals {
         matcher             = "200"
       }
     },
-    {
-      name             = "jnH"
-      backend_protocol = "HTTP"
-      backend_port     = 5005
-      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/notebook/helper/info"
-        matcher             = "200"
-      }
-    },
+//    {
+//      name             = "jnH"
+//      backend_protocol = "HTTP"
+//      backend_port     = 5005
+//      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
+//      health_check = {
+//        enabled             = true
+//        interval            = 60
+//        unhealthy_threshold = 5
+//        path                = "/notebook/helper/info"
+//        matcher             = "200"
+//      }
+//    },
     {
       name             = "h2oH"
       backend_protocol = "HTTP"

@@ -399,7 +399,7 @@ variable "docker_jupyter_image" {
 
 variable "docker_jupyter_tag" {
   type        = string
-  default     = "latest"
+  default     = "bleeding-edge"
   nullable    = false
   description = "Tag from Docker registry for Jupyter Docker Image"
 }
@@ -516,7 +516,7 @@ variable "jupyter_container_cpu" {
 
 variable "jupyter_memory" {
   type        = number
-  default     = 3072
+  default     = 4096
   nullable    = false
   description = "Amount (in MiB) of memory used by the Jupyter FARGATE task. The hard limit of memory (in MiB) to present to the task."
 }
