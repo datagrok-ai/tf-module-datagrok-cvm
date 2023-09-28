@@ -19,14 +19,14 @@ locals {
       image = var.docker_grok_compute_image
       tag   = var.docker_grok_compute_tag == "latest" ? "${var.docker_grok_compute_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_grok_compute_tag
     },
-    jupyter_kernel_gateway = {
+    jupyter = {
       image = var.docker_jupyter_image
       tag   = var.docker_jupyter_tag == "bleeding-edge" ? "${var.docker_jupyter_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jupyter_tag
     },
-//    jupyter_notebook = {
-//      image = var.docker_jn_image
-//      tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
-//    },
+    jupyter_notebook = {
+      image = var.docker_jupyter_image
+      tag   = var.docker_jupyter_tag == "bleeding-edge" ? "${var.docker_jupyter_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jupyter_tag
+    },
     h2o = {
       image = var.docker_h2o_image
       tag   = var.docker_h2o_tag == "latest" ? "${var.docker_h2o_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_h2o_tag
@@ -55,7 +55,7 @@ locals {
       name             = "jkg"
       backend_protocol = "HTTP"
       backend_port     = 8888
-      target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
+      target_type      = aws_ecs_task_definition.jupyter.network_mode == "awsvpc" ? "ip" : "instance"
       health_check = {
         enabled             = true
         interval            = 60
@@ -68,7 +68,7 @@ locals {
       name             = "jkgH"
       backend_protocol = "HTTP"
       backend_port     = 5005
-      target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
+      target_type      = aws_ecs_task_definition.jupyter.network_mode == "awsvpc" ? "ip" : "instance"
       health_check = {
         enabled             = true
         interval            = 60

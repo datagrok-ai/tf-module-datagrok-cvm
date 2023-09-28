@@ -254,21 +254,6 @@ module "lb_ext" {
       actions = [
         {
           type               = "forward"
-          target_group_index = 4
-        }
-      ]
-      conditions = [
-        {
-          path_patterns = ["/notebook/helper/*"]
-        }
-      ]
-    },
-    {
-      https_listener_index = 0
-      priority             = 5
-      actions = [
-        {
-          type               = "forward"
           target_group_index = 3
         }
       ]
@@ -374,24 +359,10 @@ module "lb_int" {
         }
       ]
     },
+ 
     {
       http_tcp_listener_index = 0
       priority                = 4
-      actions = [
-        {
-          type               = "forward"
-          target_group_index = 4
-        }
-      ]
-      conditions = [
-        {
-          path_patterns = ["/notebook/helper/*"]
-        }
-      ]
-    },
-    {
-      http_tcp_listener_index = 0
-      priority                = 5
       actions = [
         {
           type               = "forward"
