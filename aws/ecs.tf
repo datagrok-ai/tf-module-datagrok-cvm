@@ -861,7 +861,7 @@ resource "aws_ecs_service" "jn" {
     container_port   = 8889
   }
   load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[4]
+    target_group_arn = module.lb_int.target_group_arns[3]
     container_name   = "jupyter_notebook"
     container_port   = 8889
   }
@@ -910,22 +910,22 @@ resource "aws_ecs_service" "h2o" {
   }
 
   load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[5]
+    target_group_arn = module.lb_ext.target_group_arns[4]
     container_name   = "h2o"
     container_port   = 5005
   }
   load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[6]
+    target_group_arn = module.lb_ext.target_group_arns[5]
     container_name   = "h2o"
     container_port   = 54321
   }
   load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[5]
+    target_group_arn = module.lb_int.target_group_arns[4]
     container_name   = "h2o"
     container_port   = 5005
   }
   load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[6]
+    target_group_arn = module.lb_int.target_group_arns[5]
     container_name   = "h2o"
     container_port   = 54321
   }

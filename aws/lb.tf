@@ -179,13 +179,13 @@ module "lb_ext" {
       port               = 5005
       protocol           = "HTTPS"
       certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      target_group_index = 5
+      target_group_index = 4
     },
     {
       port               = 54321
       protocol           = "HTTPS"
       certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      target_group_index = 6
+      target_group_index = 5
     }
   ]
 
@@ -304,12 +304,12 @@ module "lb_int" {
     {
       port               = 5005
       protocol           = "HTTP"
-      target_group_index = 5
+      target_group_index = 4
     },
     {
       port               = 54321
       protocol           = "HTTP"
-      target_group_index = 6
+      target_group_index = 5
     }
   ]
 
