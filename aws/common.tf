@@ -90,19 +90,19 @@ locals {
         matcher             = "200"
       }
     },
-//    {
-//      name             = "jnH"
-//      backend_protocol = "HTTP"
-//      backend_port     = 5005
-//      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-//      health_check = {
-//        enabled             = true
-//        interval            = 60
-//        unhealthy_threshold = 5
-//        path                = "/notebook/helper/info"
-//        matcher             = "200"
-//      }
-//    },
+    //    {
+    //      name             = "jnH"
+    //      backend_protocol = "HTTP"
+    //      backend_port     = 5005
+    //      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
+    //      health_check = {
+    //        enabled             = true
+    //        interval            = 60
+    //        unhealthy_threshold = 5
+    //        path                = "/notebook/helper/info"
+    //        matcher             = "200"
+    //      }
+    //    },
     {
       name             = "h2oH"
       backend_protocol = "HTTP"
