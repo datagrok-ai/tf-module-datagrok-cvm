@@ -268,10 +268,10 @@ resource "aws_iam_role" "task" {
       },
     ]
   })
-  managed_policy_arns = compact([
+  managed_policy_arns = compact(concat([
     aws_iam_policy.exec.arn,
     var.ecr_enabled ? aws_iam_policy.ecr[0].arn : aws_iam_policy.docker_hub[0].arn
-  ])
+  ], var.task_iam_policies))
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
@@ -324,7 +324,7 @@ resource "aws_ecs_task_definition" "grok_compute" {
             containerPort = 5005
           }
         ]
-        memoryReservation = var.grok_compute_container_memory_reservation
+        memoryReservation = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory - 200 : var.grok_compute_container_memory_reservation
         cpu               = var.grok_compute_container_cpu
         }, var.ecr_enabled ? {} : {
         repositoryCredentials = {
@@ -391,13 +391,14 @@ resource "aws_ecs_task_definition" "jkg" {
           hostPort      = var.ecs_launch_type == "FARGATE" ? 8888 : 0
         },
       ]
-      memoryReservation = var.jkg_container_memory_reservation
+      memoryReservation = var.ecs_launch_type == "FARGATE" ? var.jkg_memory - 200 : var.jkg_container_memory_reservation
       cpu               = var.jkg_container_cpu
       }, var.ecr_enabled ? {} : {
-      repositoryCredentials = {
-        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-      }
-    })
+      repositoryCredentials = { credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn) }
+      }, var.gpu_enabled ? {
+      resourceRequirements = [{ type = "GPU", value = "1" }]
+      } : {}
+    )
   ])
 
   dynamic "ephemeral_storage" {
@@ -470,7 +471,7 @@ resource "aws_ecs_task_definition" "jn" {
           hostPort      = var.ecs_launch_type == "FARGATE" ? 8889 : 0
         },
       ]
-      memoryReservation = var.jn_container_memory_reservation
+      memoryReservation = var.ecs_launch_type == "FARGATE" ? var.jn_memory - 200 : var.jn_container_memory_reservation
       cpu               = var.jn_container_cpu
       }, var.ecr_enabled ? {} : {
       repositoryCredentials = {
@@ -537,7 +538,7 @@ resource "aws_ecs_task_definition" "h2o" {
           hostPort      = var.ecs_launch_type == "FARGATE" ? 54321 : 0
         },
       ]
-      memoryReservation = var.h2o_container_memory_reservation
+      memoryReservation = var.ecs_launch_type == "FARGATE" ? var.h2o_memory - 200 : var.h2o_container_memory_reservation
       cpu               = var.h2o_container_cpu
       }, var.ecr_enabled ? {} : {
       repositoryCredentials = {
@@ -758,8 +759,8 @@ resource "aws_ecs_service" "jkg" {
   launch_type     = var.ecs_launch_type
 
   desired_count                      = 1
-  deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = var.gpu_enabled ? 100 : 200
+  deployment_minimum_healthy_percent = var.gpu_enabled ? 0 : 100
   scheduling_strategy                = "REPLICA"
   deployment_controller {
     type = "ECS"
@@ -948,7 +949,7 @@ data "aws_ami" "aws_optimized_ecs" {
   most_recent = true
   filter {
     name   = "name"
-    values = ["amzn2-ami-ecs-hvm*ebs"]
+    values = ["amzn2-ami-ecs${var.gpu_enabled ? "-gpu" : ""}-hvm*ebs"]
   }
   filter {
     name   = "architecture"
@@ -1034,6 +1035,7 @@ resource "aws_instance" "ec2" {
   key_name      = try(aws_key_pair.ec2[0].key_name, var.key_pair_name)
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     ecs_cluster_name = module.ecs.cluster_name
+    gpu_enabled      = var.gpu_enabled
   }))
   availability_zone                    = data.aws_availability_zones.available.names[0]
   subnet_id                            = try(module.vpc[0].private_subnets[0], var.private_subnet_ids[0])

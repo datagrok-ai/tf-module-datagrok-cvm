@@ -615,3 +615,17 @@ variable "bucket_logging" {
   }
   description = "Bucket Logging object.\n `enabled` - Specifies whether Logging requests using server access logging for Datagrok S3 bucket are enabled. We recommend to set it to true for production stand.\n`create_log_bucket` - Specifies whether the S3 log bucket will be created.\n`log_bucket` - The name of S3 logging bucket. If it is not specified, the S3 log bucket for Datagrok S3 bucket will be created."
 }
+
+variable "task_iam_policies" {
+  type     = list(string)
+  description = "List of additional IAM policies to attach to tasks"
+  nullable = false
+  default  = []
+}
+
+variable "gpu_enabled" {
+  type        = bool
+  default     = false
+  nullable    = false
+  description = "Specifies whether CVM should use GPU."
+}
