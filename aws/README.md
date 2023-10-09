@@ -154,6 +154,7 @@ module "datagrok_cvm" {
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment of a stand. It will be used to name resources along with the name. | `string` | n/a | yes |
 | <a name="input_flow_log_cloudwatch_log_group_name_prefix"></a> [flow\_log\_cloudwatch\_log\_group\_name\_prefix](#input\_flow\_log\_cloudwatch\_log\_group\_name\_prefix) | Flow logs CloudWatch Log Group name prefix. | `string` | `"/aws/vpc-flow-log/"` | no |
 | <a name="input_flow_log_log_format"></a> [flow\_log\_log\_format](#input\_flow\_log\_log\_format) | Flow logs format. | `string` | `null` | no |
+| <a name="input_gpu_enabled"></a> [gpu\_enabled](#input\_gpu\_enabled) | Specifies whether CVM should use GPU. | `bool` | `false` | no |
 | <a name="input_grok_compute_container_cpu"></a> [grok\_compute\_container\_cpu](#input\_grok\_compute\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Grok Compute container. | `number` | `1024` | no |
 | <a name="input_grok_compute_container_memory_reservation"></a> [grok\_compute\_container\_memory\_reservation](#input\_grok\_compute\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Grok Compute container. | `number` | `1024` | no |
 | <a name="input_grok_compute_cpu"></a> [grok\_compute\_cpu](#input\_grok\_compute\_cpu) | Number of cpu units used by the Grok Compute FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
@@ -190,6 +191,7 @@ module "datagrok_cvm" {
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br>    create = bool<br>    id     = optional(string)<br>  })</pre> | <pre>{<br>  "create": true<br>}</pre> | no |
 | <a name="input_subject_alternative_names"></a> [subject\_alternative\_names](#input\_subject\_alternative\_names) | List for alternative names for ACM certificate | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Key-value map of resource tags. | `map(string)` | `{}` | no |
+| <a name="input_task_iam_policies"></a> [task\_iam\_policies](#input\_task\_iam\_policies) | List of additional IAM policies to attach to tasks | `list(string)` | `[]` | no |
 | <a name="input_termination_protection"></a> [termination\_protection](#input\_termination\_protection) | Termination protection for the resources created by module. | `bool` | `true` | no |
 | <a name="input_vpc_create"></a> [vpc\_create](#input\_vpc\_create) | Specifies if new VPC should be created. | `bool` | `true` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of VPC to place resources. If it is not specified, the VPC for Datagrok will be created. | `string` | `null` | no |
