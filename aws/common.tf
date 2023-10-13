@@ -7,7 +7,7 @@ locals {
   })
   full_name      = "${var.name}-${var.environment}"
   vpc_name       = coalesce(var.vpc_name, "${var.name}-${var.environment}")
-  ecs_name       = coalesce(var.ecs_name, "${var.name}-${var.environment}")
+  ecs_name       = "testcvm11"//coalesce(var.ecs_name, "${var.name}-${var.environment}")
   lb_name        = coalesce(var.lb_name, "${var.name}-${var.environment}")
   ec2_name       = "testcvm"//coalesce(var.ec2_name, "${var.name}-${var.environment}")
   sns_topic_name = coalesce(var.monitoring.sns_topic_name, "${var.name}-${var.environment}")
