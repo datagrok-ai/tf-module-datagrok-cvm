@@ -364,7 +364,7 @@ resource "aws_ecs_task_definition" "jn" {
       memoryReservation = 100
     },
     merge({
-      name  = "jn"
+      name  = "jupyter_notebook"
       image = "${var.ecr_enabled ? aws_ecr_repository.ecr["jupyter"].repository_url : var.docker_jupyter_image}:${var.ecr_enabled ? local.images["jupyter"]["tag"] : var.docker_jupyter_tag}"
       dependsOn = [
         {

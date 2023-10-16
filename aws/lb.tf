@@ -130,7 +130,7 @@ module "acm" {
   create_route53_records = var.route53_enabled
   validate_certificate   = true
   wait_for_validation    = true
-  validation_record_fqdns = var.route53_enabled ? null : distinct(
+  validation_record_fqdns = var.route53_enabled ? [] : distinct(
     [
       for domain in concat(
         [
