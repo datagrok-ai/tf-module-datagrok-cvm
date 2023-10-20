@@ -130,7 +130,7 @@ module "acm" {
   create_route53_records = var.route53_enabled
   validate_certificate   = true
   wait_for_validation    = true
-  validation_record_fqdns = var.route53_enabled ? null : distinct(
+  validation_record_fqdns = var.route53_enabled ? [] : distinct(
     [
       for domain in concat(
         [
@@ -179,13 +179,13 @@ module "lb_ext" {
       port               = 5005
       protocol           = "HTTPS"
       certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      target_group_index = 5
+      target_group_index = 4
     },
     {
       port               = 54321
       protocol           = "HTTPS"
       certificate_arn    = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      target_group_index = 6
+      target_group_index = 5
     }
   ]
 
@@ -254,21 +254,6 @@ module "lb_ext" {
       actions = [
         {
           type               = "forward"
-          target_group_index = 4
-        }
-      ]
-      conditions = [
-        {
-          path_patterns = ["/notebook/helper/*"]
-        }
-      ]
-    },
-    {
-      https_listener_index = 0
-      priority             = 5
-      actions = [
-        {
-          type               = "forward"
           target_group_index = 3
         }
       ]
@@ -319,12 +304,12 @@ module "lb_int" {
     {
       port               = 5005
       protocol           = "HTTP"
-      target_group_index = 5
+      target_group_index = 4
     },
     {
       port               = 54321
       protocol           = "HTTP"
-      target_group_index = 6
+      target_group_index = 5
     }
   ]
 
@@ -374,24 +359,10 @@ module "lb_int" {
         }
       ]
     },
+ 
     {
       http_tcp_listener_index = 0
       priority                = 4
-      actions = [
-        {
-          type               = "forward"
-          target_group_index = 4
-        }
-      ]
-      conditions = [
-        {
-          path_patterns = ["/notebook/helper/*"]
-        }
-      ]
-    },
-    {
-      http_tcp_listener_index = 0
-      priority                = 5
       actions = [
         {
           type               = "forward"

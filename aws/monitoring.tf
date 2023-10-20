@@ -143,7 +143,7 @@ resource "aws_cloudwatch_metric_alarm" "jkg_task_count" {
       stat        = "Average"
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.jkg.name
+        ServiceName = aws_ecs_service.jupyter.name
       }
     }
   }
@@ -158,7 +158,7 @@ resource "aws_cloudwatch_metric_alarm" "jkg_task_count" {
       stat        = "Average"
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.jkg.name
+        ServiceName = aws_ecs_service.jupyter.name
       }
     }
   }
