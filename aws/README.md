@@ -66,18 +66,19 @@ module "datagrok_cvm" {
 | [aws_cloudwatch_metric_alarm.high_ram](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.instance_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.jkg_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.jn_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lb_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lb_target_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_ecr_repository.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_ecr_repository_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository_policy) | resource |
 | [aws_ecs_service.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
-| [aws_ecs_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_service.jupyter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_task_definition.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_ecs_task_definition.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
-| [aws_ecs_task_definition.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_ecs_task_definition.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_ecs_task_definition.jupyter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_instance_profile.ec2_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_policy.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
@@ -100,8 +101,8 @@ module "datagrok_cvm" {
 | [aws_service_discovery_private_dns_namespace.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) | resource |
 | [aws_service_discovery_service.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_service_discovery_service.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
-| [aws_service_discovery_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_service_discovery_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
+| [aws_service_discovery_service.jupyter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_sns_topic_subscription.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [null_resource.ecr_push](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_pet.this](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
@@ -133,8 +134,8 @@ module "datagrok_cvm" {
 | <a name="input_docker_h2o_image"></a> [docker\_h2o\_image](#input\_docker\_h2o\_image) | H2O Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/h2o"` | no |
 | <a name="input_docker_h2o_tag"></a> [docker\_h2o\_tag](#input\_docker\_h2o\_tag) | Tag from Docker registry for H2O Docker Image | `string` | `"latest"` | no |
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br>`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables<br>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br>    create_secret = bool<br>    password      = optional(string)<br>    user          = optional(string)<br>    secret_arn    = optional(string)<br>  })</pre> | `null` | no |
-| <a name="input_docker_jkg_image"></a> [docker\_jkg\_image](#input\_docker\_jkg\_image) | Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_kernel_gateway"` | no |
-| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no |
+| <a name="input_docker_jupyter_image"></a> [docker\_jupyter\_image](#input\_docker\_jupyter\_image) | Jupyter Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter"` | no |
+| <a name="input_docker_jupyter_tag"></a> [docker\_jupyter\_tag](#input\_docker\_jupyter\_tag) | Tag from Docker registry for Jupyter Docker Image | `string` | `"bleeding-edge"` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
@@ -161,14 +162,14 @@ module "datagrok_cvm" {
 | <a name="input_h2o_cpu"></a> [h2o\_cpu](#input\_h2o\_cpu) | Number of cpu units used by the H2O FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
 | <a name="input_h2o_memory"></a> [h2o\_memory](#input\_h2o\_memory) | Amount (in MiB) of memory used by the H2O FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type. The default value is the minimum recommended type. | `string` | `"c5.xlarge"` | no |
-| <a name="input_jkg_container_cpu"></a> [jkg\_container\_cpu](#input\_jkg\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container. | `number` | `1024` | no |
-| <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `2048` | no |
-| <a name="input_jkg_cpu"></a> [jkg\_cpu](#input\_jkg\_cpu) | Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
-| <a name="input_jkg_memory"></a> [jkg\_memory](#input\_jkg\_memory) | Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `3072` | no |
-| <a name="input_jn_container_cpu"></a> [jn\_container\_cpu](#input\_jn\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container. | `number` | `512` | no |
-| <a name="input_jn_container_memory_reservation"></a> [jn\_container\_memory\_reservation](#input\_jn\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container. | `number` | `1024` | no |
-| <a name="input_jn_cpu"></a> [jn\_cpu](#input\_jn\_cpu) | Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
-| <a name="input_jn_memory"></a> [jn\_memory](#input\_jn\_memory) | Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
+| <a name="input_jn_container_cpu"></a> [jn\_container\_cpu](#input\_jn\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter container. | `number` | `512` | no |
+| <a name="input_jn_container_memory_reservation"></a> [jn\_container\_memory\_reservation](#input\_jn\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter container. | `number` | `512` | no |
+| <a name="input_jn_cpu"></a> [jn\_cpu](#input\_jn\_cpu) | Number of cpu units used by the JupyterNotebook FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
+| <a name="input_jn_memory"></a> [jn\_memory](#input\_jn\_memory) | Amount (in MiB) of memory used by the JupyterNotebook FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `1024` | no |
+| <a name="input_jupyter_container_cpu"></a> [jupyter\_container\_cpu](#input\_jupyter\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter container. | `number` | `1024` | no |
+| <a name="input_jupyter_container_memory_reservation"></a> [jupyter\_container\_memory\_reservation](#input\_jupyter\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter container. | `number` | `2048` | no |
+| <a name="input_jupyter_cpu"></a> [jupyter\_cpu](#input\_jupyter\_cpu) | Number of cpu units used by the Jupyter FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
+| <a name="input_jupyter_memory"></a> [jupyter\_memory](#input\_jupyter\_memory) | Amount (in MiB) of memory used by the Jupyter FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `4096` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Existing SSH Key Pair name for access to EC2 instance. If not set public\_key is required. | `string` | `null` | no |
 | <a name="input_kms_admins"></a> [kms\_admins](#input\_kms\_admins) | https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-default.html#key-policy-default-allow-administrators | `list(string)` | `null` | no |
 | <a name="input_kms_key"></a> [kms\_key](#input\_kms\_key) | The ID of custom KMS Key to encrypt resources. | `string` | `null` | no |
