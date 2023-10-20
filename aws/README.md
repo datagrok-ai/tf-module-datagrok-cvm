@@ -164,6 +164,10 @@ module "datagrok_cvm" {
 | <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `2048` | no |
 | <a name="input_jkg_cpu"></a> [jkg\_cpu](#input\_jkg\_cpu) | Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
 | <a name="input_jkg_memory"></a> [jkg\_memory](#input\_jkg\_memory) | Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `3072` | no |
+| <a name="input_jn_container_cpu"></a> [jn\_container\_cpu](#input\_jn\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container. | `number` | `512` | no |
+| <a name="input_jn_container_memory_reservation"></a> [jn\_container\_memory\_reservation](#input\_jn\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container. | `number` | `1024` | no |
+| <a name="input_jn_cpu"></a> [jn\_cpu](#input\_jn\_cpu) | Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
+| <a name="input_jn_memory"></a> [jn\_memory](#input\_jn\_memory) | Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Existing SSH Key Pair name for access to EC2 instance. If not set public\_key is required. | `string` | `null` | no |
 | <a name="input_kms_admins"></a> [kms\_admins](#input\_kms\_admins) | https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-default.html#key-policy-default-allow-administrators | `list(string)` | `null` | no |
 | <a name="input_kms_key"></a> [kms\_key](#input\_kms\_key) | The ID of custom KMS Key to encrypt resources. | `string` | `null` | no |

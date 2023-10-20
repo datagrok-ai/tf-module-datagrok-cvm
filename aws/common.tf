@@ -7,11 +7,11 @@ locals {
   })
   full_name      = "${var.name}-${var.environment}"
   vpc_name       = coalesce(var.vpc_name, "${var.name}-${var.environment}")
-  ecs_name       = "testcvm11"//coalesce(var.ecs_name, "${var.name}-${var.environment}")
+  ecs_name       = coalesce(var.ecs_name, "${var.name}-${var.environment}")
   lb_name        = coalesce(var.lb_name, "${var.name}-${var.environment}")
-  ec2_name       = "testcvm"//coalesce(var.ec2_name, "${var.name}-${var.environment}")
+  ec2_name       = coalesce(var.ec2_name, "${var.name}-${var.environment}")
   sns_topic_name = coalesce(var.monitoring.sns_topic_name, "${var.name}-${var.environment}")
-  r53_record     = "cvm111.datagrok.ai"//var.route53_enabled ? try("${var.route53_record_name}.${var.domain_name}", "${var.name}-${var.environment}.${var.domain_name}") : ""
+  r53_record     = var.route53_enabled ? try("${var.route53_record_name}.${var.domain_name}", "${var.name}-${var.environment}.${var.domain_name}") : ""
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
 
   images = {
@@ -90,19 +90,6 @@ locals {
         matcher             = "200"
       }
     },
-//    {
-//      name             = "jnH"
-//      backend_protocol = "HTTP"
-//      backend_port     = 5005
-//      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-//      health_check = {
-//        enabled             = true
-//        interval            = 60
-//        unhealthy_threshold = 5
-//        path                = "/notebook/helper/info"
-//        matcher             = "200"
-//      }
-//    },
     {
       name             = "h2oH"
       backend_protocol = "HTTP"

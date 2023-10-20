@@ -453,7 +453,7 @@ resource "aws_ecs_task_definition" "jupyter" {
         Options = {
           awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
           awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "jupyter"
+          awslogs-stream-prefix = "jupyter_notebook"
         }
       }
       portMappings = [
@@ -464,10 +464,6 @@ resource "aws_ecs_task_definition" "jupyter" {
         {
           containerPort = 8888
           hostPort      = var.ecs_launch_type == "FARGATE" ? 8888 : 0
-        },
-        {
-          containerPort = 8889
-          hostPort      = var.ecs_launch_type == "FARGATE" ? 8889 : 0
         },
       ]
       memoryReservation = var.jupyter_container_memory_reservation
@@ -613,7 +609,7 @@ resource "aws_service_discovery_service" "jupyter" {
 resource "aws_service_discovery_service" "jn" {
   count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
   name        = "jn"
-  description = "Datagrok CVM jupyter service discovery entry"
+  description = "Datagrok CVM jupyter_notebook service discovery entry"
 
   dns_config {
     namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
