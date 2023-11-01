@@ -326,11 +326,11 @@ resource "aws_ecs_task_definition" "grok_compute" {
         ]
         memoryReservation = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory - 200 : var.grok_compute_container_memory_reservation
         cpu               = var.grok_compute_container_cpu
-        }, var.ecr_enabled ? {} : {
-        repositoryCredentials = {
-          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-        }
-    })
+        }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
+          repositoryCredentials = {
+            credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+          }
+    }), )
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.grok_compute_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory : null
@@ -393,9 +393,11 @@ resource "aws_ecs_task_definition" "jkg" {
       ]
       memoryReservation = var.ecs_launch_type == "FARGATE" ? var.jkg_memory - 200 : var.jkg_container_memory_reservation
       cpu               = var.jkg_container_cpu
-      }, var.ecr_enabled ? {} : {
-      repositoryCredentials = { credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn) }
-      }, var.gpu_enabled ? {
+      }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
+        repositoryCredentials = {
+          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+        }
+      }), var.gpu_enabled ? {
       resourceRequirements = [{ type = "GPU", value = "1" }]
       } : {}
     )
@@ -473,11 +475,11 @@ resource "aws_ecs_task_definition" "jn" {
       ]
       memoryReservation = var.ecs_launch_type == "FARGATE" ? var.jn_memory - 200 : var.jn_container_memory_reservation
       cpu               = var.jn_container_cpu
-      }, var.ecr_enabled ? {} : {
-      repositoryCredentials = {
-        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-      }
-    })
+      }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
+        repositoryCredentials = {
+          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+        }
+    }))
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.jn_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.jn_memory : null
@@ -540,11 +542,11 @@ resource "aws_ecs_task_definition" "h2o" {
       ]
       memoryReservation = var.ecs_launch_type == "FARGATE" ? var.h2o_memory - 200 : var.h2o_container_memory_reservation
       cpu               = var.h2o_container_cpu
-      }, var.ecr_enabled ? {} : {
-      repositoryCredentials = {
-        credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-      }
-    })
+      }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
+        repositoryCredentials = {
+          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
+        }
+    }))
   ])
   cpu                      = var.ecs_launch_type == "FARGATE" ? var.h2o_cpu : null
   memory                   = var.ecs_launch_type == "FARGATE" ? var.h2o_memory : null
