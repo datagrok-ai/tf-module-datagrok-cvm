@@ -1042,7 +1042,7 @@ resource "aws_instance" "ec2" {
   }))
   availability_zone                    = data.aws_availability_zones.available.names[0]
   subnet_id                            = var.ec2_public_access ? try(module.vpc[0].public_subnets[0], var.public_subnet_ids[0]) : try(module.vpc[0].private_subnets[0], var.private_subnet_ids[0])
-  associate_public_ip_address          = false
+  associate_public_ip_address          = var.ec2_public_access
   vpc_security_group_ids               = [module.sg.security_group_id]
   disable_api_stop                     = var.termination_protection
   disable_api_termination              = var.termination_protection
