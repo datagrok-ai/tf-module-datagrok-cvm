@@ -629,3 +629,10 @@ variable "gpu_enabled" {
   nullable    = false
   description = "Specifies whether CVM should use GPU."
 }
+
+variable "ec2_public_access" {
+  type        = bool
+  default     = false
+  nullable    = false
+  description = "Specifies whether CVM EC2 machine should be in public subnet."
+}
