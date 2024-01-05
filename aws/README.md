@@ -142,6 +142,7 @@ module "datagrok_cvm" {
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
 | <a name="input_ec2_public_access"></a> [ec2\_public\_access](#input\_ec2\_public\_access) | Specifies whether CVM EC2 machine should be in public subnet. | `bool` | `false` | no |
+| <a name="input_ec2_root_volume_size"></a> [ec2\_root\_volume\_size](#input\_ec2\_root\_volume\_size) | Specifies volume size for EC2 machine | `number` | `100` | no |
 | <a name="input_ecr_enabled"></a> [ecr\_enabled](#input\_ecr\_enabled) | Specifies whether terraform copy images to ECR and use it instead of `docker_<service>_image` | `bool` | `false` | no |
 | <a name="input_ecr_image_scan_on_push"></a> [ecr\_image\_scan\_on\_push](#input\_ecr\_image\_scan\_on\_push) | Indicates whether images are scanned after being pushed to the repository (true) or not scanned (false). | `bool` | `true` | no |
 | <a name="input_ecr_policy_principal"></a> [ecr\_policy\_principal](#input\_ecr\_policy\_principal) | List of principal ARNs which will have access to ECR. By default it is limited to the caller ARN. | `list(string)` | `[]` | no |
