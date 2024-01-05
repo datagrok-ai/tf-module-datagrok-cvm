@@ -636,3 +636,10 @@ variable "ec2_public_access" {
   nullable    = false
   description = "Specifies whether CVM EC2 machine should be in public subnet."
 }
+
+variable "ec2_root_volume_size" {
+  type = number
+  default = 100
+  nullable = false
+  description = "Specifies volume size for EC2 machine"
+}

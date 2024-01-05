@@ -1063,7 +1063,7 @@ resource "aws_instance" "ec2" {
     kms_key_id  = var.custom_kms_key ? try(module.kms[0].key_arn, var.kms_key) : null
     volume_type = "gp3"
     throughput  = try(length(var.root_volume_throughput) > 0, false) ? var.root_volume_throughput : null
-    volume_size = 100
+    volume_size = var.ec2_root_volume_size
   }
   ebs_optimized = true
   tags          = merge({ Name = local.ec2_name }, local.tags)
