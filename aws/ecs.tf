@@ -373,7 +373,7 @@ resource "aws_ecs_task_definition" "jkg" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential = true
+      essential  = true
       entryPoint = ["./entrypoint.sh", "--main", "jupyter kernelgateway --config=.jupyter/jupyter_kernel_gateway_config.py", "--helper", "gunicorn grok_helper:app --timeout 900 --chdir /home/grok/grok_helper -b 0.0.0.0:5005  --access-logfile - --error-logfile - --workers 4"]
       logConfiguration = {
         LogDriver = "awslogs",
