@@ -643,3 +643,47 @@ variable "ec2_root_volume_size" {
   nullable    = false
   description = "Specifies volume size for EC2 machine"
 }
+
+variable "db_instance_address" {
+  description = "The address of the Datagrok DB"
+  type        = string
+  nullable    = false
+}
+
+variable "db_instance_port" {
+  description = "The port of the Datagrok DB"
+  type        = number
+  nullable    = false
+}
+
+variable "db_dg_login" {
+  description = "The user to the Datagrok DB"
+  default     = "datagrok"
+  type        = string
+  nullable    = false
+}
+
+variable "db_dg_password" {
+  description = "The password to the Datagrok DB"
+  type        = string
+  nullable    = false
+#  sensitive   = true
+}
+
+variable "s3_bucket_region" {
+  description = "The S3 Bucket region for a stand."
+  type        = string
+  nullable    = false
+}
+
+variable "s3_bucket_name" {
+  description = "The S3 Bucket name of a stand."
+  type        = string
+  nullable    = false
+}
+
+variable "jkg_secret" {
+  description = "The jupyter kernel gateway secret name"
+  type        = string
+  nullable    = false
+}
