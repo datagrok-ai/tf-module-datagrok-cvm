@@ -340,6 +340,14 @@ resource "aws_ecs_task_definition" "grok_compute" {
   task_role_arn            = aws_iam_role.task.arn
   requires_compatibilities = [var.ecs_launch_type]
 }
+
+data "aws_secretsmanager_secret" "jkg_secret" {
+  name = var.jkg_secret
+}
+data "aws_secretsmanager_secret_version" "jkg_secret" {
+  secret_id = data.aws_secretsmanager_secret.jkg_secret.id
+}
+
 resource "aws_ecs_task_definition" "jkg" {
   depends_on = [null_resource.ecr_push]
   family     = "${local.ecs_name}_jupyter_kernel_gateway"
@@ -373,8 +381,25 @@ resource "aws_ecs_task_definition" "jkg" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential = true
+      essential  = true
       entryPoint = ["./entrypoint.sh", "--main", "jupyter kernelgateway --config=.jupyter/jupyter_kernel_gateway_config.py", "--helper", "gunicorn grok_helper:app --timeout 900 --chdir /home/grok/grok_helper -b 0.0.0.0:5005  --access-logfile - --error-logfile - --workers 4"]
+      environment = [
+        {
+          name = "GROK_PARAMETERS",
+          value = jsonencode(
+            {
+              amazonStorageRegion : var.s3_bucket_region,
+              amazonStorageBucket : var.s3_bucket_name,
+              dbServer : var.db_instance_address,
+              dbPort : var.db_instance_port,
+              db : "datagrok",
+              dbLogin : var.db_dg_login,
+              dbPassword : var.db_dg_password,
+              jupyterToken: jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"],
+              capabilities: ["jupyter"]
+          })
+        }
+      ]
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
