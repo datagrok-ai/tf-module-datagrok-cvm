@@ -395,8 +395,8 @@ resource "aws_ecs_task_definition" "jkg" {
               db : "datagrok",
               dbLogin : var.db_dg_login,
               dbPassword : var.db_dg_password,
-              jupyterToken: jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"],
-              capabilities: ["jupyter"]
+              jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"],
+              capabilities : ["jupyter"]
           })
         }
       ]
