@@ -667,7 +667,7 @@ variable "db_dg_password" {
   description = "The password to the Datagrok DB"
   type        = string
   nullable    = false
-#  sensitive   = true
+  #  sensitive   = true
 }
 
 variable "s3_bucket_region" {
