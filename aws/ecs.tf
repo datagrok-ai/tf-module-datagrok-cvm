@@ -381,7 +381,7 @@ resource "aws_ecs_task_definition" "jkg" {
           "containerName" : "resolv_conf"
         }
       ]
-      essential  = true
+      essential = true
       environment = [
         {
           name = "GROK_PARAMETERS",
