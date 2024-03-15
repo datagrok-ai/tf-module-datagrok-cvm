@@ -229,7 +229,33 @@ resource "aws_iam_policy" "docker_hub" {
     )
   })
 }
+data "aws_s3_bucket" "datagrok" {
+  bucket = var.s3_bucket_name
+}
+resource "aws_iam_policy" "s3" {
+  name        = "${local.ecs_name}_s3"
+  description = "Datagrok CVM policy to access S3 storage from tasks"
 
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action" = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = [
+          data.aws_s3_bucket.datagrok.arn,
+          "${data.aws_s3_bucket.datagrok.arn}/*"
+        ]
+      }
+    ]
+  })
+}
 resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
@@ -271,12 +297,14 @@ resource "aws_iam_role" "task" {
   })
   managed_policy_arns = compact(concat([
     aws_iam_policy.exec.arn,
+    aws_iam_policy.s3.arn,
     var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (var.ecs_launch_type == "FARGATE" ? "" : aws_iam_policy.docker_hub[0].arn)
   ], var.task_iam_policies))
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
 }
+
 resource "aws_ecs_task_definition" "grok_compute" {
   depends_on = [null_resource.ecr_push]
   family     = "${local.ecs_name}_grok_compute"
