@@ -687,3 +687,9 @@ variable "jkg_secret" {
   type        = string
   nullable    = false
 }
+
+variable "datlas_api_url" {
+  description = "API Url of Datagrok endpoint"
+  type        = string
+  nullable    = false
+}
