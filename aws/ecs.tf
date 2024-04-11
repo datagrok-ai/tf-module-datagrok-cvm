@@ -229,7 +229,33 @@ resource "aws_iam_policy" "docker_hub" {
     )
   })
 }
+data "aws_s3_bucket" "datagrok" {
+  bucket = var.s3_bucket_name
+}
+resource "aws_iam_policy" "s3" {
+  name        = "${local.ecs_name}_s3"
+  description = "Datagrok CVM policy to access S3 storage from tasks"
 
+  policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Action" = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ],
+        "Condition" = {},
+        "Effect"    = "Allow",
+        "Resource" = [
+          data.aws_s3_bucket.datagrok.arn,
+          "${data.aws_s3_bucket.datagrok.arn}/*"
+        ]
+      }
+    ]
+  })
+}
 resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
@@ -271,12 +297,14 @@ resource "aws_iam_role" "task" {
   })
   managed_policy_arns = compact(concat([
     aws_iam_policy.exec.arn,
+    aws_iam_policy.s3.arn,
     var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (var.ecs_launch_type == "FARGATE" ? "" : aws_iam_policy.docker_hub[0].arn)
   ], var.task_iam_policies))
   #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
 }
+
 resource "aws_ecs_task_definition" "grok_compute" {
   depends_on = [null_resource.ecr_push]
   family     = "${local.ecs_name}_grok_compute"
@@ -340,6 +368,14 @@ resource "aws_ecs_task_definition" "grok_compute" {
   task_role_arn            = aws_iam_role.task.arn
   requires_compatibilities = [var.ecs_launch_type]
 }
+
+data "aws_secretsmanager_secret" "jkg_secret" {
+  name = var.jkg_secret
+}
+data "aws_secretsmanager_secret_version" "jkg_secret" {
+  secret_id = data.aws_secretsmanager_secret.jkg_secret.id
+}
+
 resource "aws_ecs_task_definition" "jkg" {
   depends_on = [null_resource.ecr_push]
   family     = "${local.ecs_name}_jupyter_kernel_gateway"
@@ -374,7 +410,24 @@ resource "aws_ecs_task_definition" "jkg" {
         }
       ]
       essential  = true
-      entryPoint = ["./entrypoint.sh", "--main", "jupyter kernelgateway --config=.jupyter/jupyter_kernel_gateway_config.py", "--helper", "gunicorn grok_helper:app --timeout 900 --chdir /home/grok/grok_helper -b 0.0.0.0:5005  --access-logfile - --error-logfile - --workers 4"]
+      environment = [
+        {
+          name = "GROK_PARAMETERS",
+          value = jsonencode(
+            {
+              amazonStorageRegion : var.s3_bucket_region,
+              amazonStorageBucket : var.s3_bucket_name,
+              datlasApiUrl: var.datlas_api_url,
+              dbServer : var.db_instance_address,
+              dbPort : var.db_instance_port,
+              db : "datagrok",
+              dbLogin : var.db_dg_login,
+              dbPassword : var.db_dg_password,
+              jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"],
+              capabilities : ["jupyter"]
+          })
+        }
+      ]
       logConfiguration = {
         LogDriver = "awslogs",
         Options = {
