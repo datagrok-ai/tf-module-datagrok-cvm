@@ -84,6 +84,7 @@ module "datagrok_cvm" {
 | [aws_iam_policy.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
@@ -113,6 +114,9 @@ module "datagrok_cvm" {
 | [aws_iam_policy_document.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
+| [aws_s3_bucket.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
+| [aws_secretsmanager_secret.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret) | data source |
+| [aws_secretsmanager_secret_version.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 
 ## Inputs
 
@@ -129,6 +133,11 @@ module "datagrok_cvm" {
 | <a name="input_create_route53_external_zone"></a> [create\_route53\_external\_zone](#input\_create\_route53\_external\_zone) | Specifies if the Route53 external hosted zone for the domain should be created. If not specified some other DNS service should be used instead of Route53 or existing Route53 zone. | `bool` | `true` | no |
 | <a name="input_create_route53_internal_zone"></a> [create\_route53\_internal\_zone](#input\_create\_route53\_internal\_zone) | Specifies if the Route53 internal hosted zone for the domain should be created. If if is set to false route53\_internal\_zone is required | `bool` | `true` | no |
 | <a name="input_custom_kms_key"></a> [custom\_kms\_key](#input\_custom\_kms\_key) | Specifies whether a custom KMS key should be used to encrypt instead of the default. We recommend to set it to true for production stand. | `bool` | `false` | no |
+| <a name="input_datlas_api_url"></a> [datlas\_api\_url](#input\_datlas\_api\_url) | API Url of Datagrok endpoint | `string` | n/a | yes |
+| <a name="input_db_dg_login"></a> [db\_dg\_login](#input\_db\_dg\_login) | The user to the Datagrok DB | `string` | `"datagrok"` | no |
+| <a name="input_db_dg_password"></a> [db\_dg\_password](#input\_db\_dg\_password) | The password to the Datagrok DB | `string` | n/a | yes |
+| <a name="input_db_instance_address"></a> [db\_instance\_address](#input\_db\_instance\_address) | The address of the Datagrok DB | `string` | n/a | yes |
+| <a name="input_db_instance_port"></a> [db\_instance\_port](#input\_db\_instance\_port) | The port of the Datagrok DB | `number` | n/a | yes |
 | <a name="input_docker_grok_compute_image"></a> [docker\_grok\_compute\_image](#input\_docker\_grok\_compute\_image) | Grok Compute Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/grok_compute"` | no |
 | <a name="input_docker_grok_compute_tag"></a> [docker\_grok\_compute\_tag](#input\_docker\_grok\_compute\_tag) | Tag from Docker registry for Grok Compute Docker Image | `string` | `"latest"` | no |
 | <a name="input_docker_h2o_image"></a> [docker\_h2o\_image](#input\_docker\_h2o\_image) | H2O Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/h2o"` | no |
@@ -170,6 +179,7 @@ module "datagrok_cvm" {
 | <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `2048` | no |
 | <a name="input_jkg_cpu"></a> [jkg\_cpu](#input\_jkg\_cpu) | Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
 | <a name="input_jkg_memory"></a> [jkg\_memory](#input\_jkg\_memory) | Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `3072` | no |
+| <a name="input_jkg_secret"></a> [jkg\_secret](#input\_jkg\_secret) | The jupyter kernel gateway secret name | `string` | n/a | yes |
 | <a name="input_jn_container_cpu"></a> [jn\_container\_cpu](#input\_jn\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container. | `number` | `512` | no |
 | <a name="input_jn_container_memory_reservation"></a> [jn\_container\_memory\_reservation](#input\_jn\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container. | `number` | `1024` | no |
 | <a name="input_jn_cpu"></a> [jn\_cpu](#input\_jn\_cpu) | Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
@@ -190,6 +200,8 @@ module "datagrok_cvm" {
 | <a name="input_route53_enabled"></a> [route53\_enabled](#input\_route53\_enabled) | Specifies if the Route53 is used for DNS. | `bool` | `true` | no |
 | <a name="input_route53_internal_zone"></a> [route53\_internal\_zone](#input\_route53\_internal\_zone) | Route53 internal hosted zone ID. If it is not set create\_route53\_internal\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_record_name"></a> [route53\_record\_name](#input\_route53\_record\_name) | This is the name of record in Route53 for Datagrok. If if is not set the name along with environment will be used. | `string` | `null` | no |
+| <a name="input_s3_bucket_name"></a> [s3\_bucket\_name](#input\_s3\_bucket\_name) | The S3 Bucket name of a stand. | `string` | n/a | yes |
+| <a name="input_s3_bucket_region"></a> [s3\_bucket\_region](#input\_s3\_bucket\_region) | The S3 Bucket region for a stand. | `string` | n/a | yes |
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br>    create = bool<br>    id     = optional(string)<br>  })</pre> | <pre>{<br>  "create": true<br>}</pre> | no |
 | <a name="input_subject_alternative_names"></a> [subject\_alternative\_names](#input\_subject\_alternative\_names) | List for alternative names for ACM certificate | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Key-value map of resource tags. | `map(string)` | `{}` | no |
