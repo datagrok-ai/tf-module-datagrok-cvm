@@ -516,14 +516,14 @@ variable "grok_compute_cpu" {
 
 variable "jkg_container_memory_reservation" {
   type        = number
-  default     = 2048
+  default     = 1024
   nullable    = false
   description = "The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container."
 }
 
 variable "jkg_container_cpu" {
   type        = number
-  default     = 1024
+  default     = 512
   nullable    = false
   description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container."
 }

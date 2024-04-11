@@ -415,8 +415,8 @@ resource "aws_ecs_task_definition" "jkg" {
           name = "GROK_PARAMETERS",
           value = jsonencode(
             {
-              amazonStorageRegion : var.s3_bucket_region,
-              amazonStorageBucket : var.s3_bucket_name,
+              #              amazonStorageRegion : var.s3_bucket_region,
+              #              amazonStorageBucket : var.s3_bucket_name,
               datlasApiUrl : var.datlas_api_url,
               dbServer : var.db_instance_address,
               dbPort : var.db_instance_port,
