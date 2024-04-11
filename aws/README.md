@@ -175,8 +175,8 @@ module "datagrok_cvm" {
 | <a name="input_h2o_cpu"></a> [h2o\_cpu](#input\_h2o\_cpu) | Number of cpu units used by the H2O FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
 | <a name="input_h2o_memory"></a> [h2o\_memory](#input\_h2o\_memory) | Amount (in MiB) of memory used by the H2O FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type. The default value is the minimum recommended type. | `string` | `"c5.xlarge"` | no |
-| <a name="input_jkg_container_cpu"></a> [jkg\_container\_cpu](#input\_jkg\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container. | `number` | `1024` | no |
-| <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `2048` | no |
+| <a name="input_jkg_container_cpu"></a> [jkg\_container\_cpu](#input\_jkg\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container. | `number` | `512` | no |
+| <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `1024` | no |
 | <a name="input_jkg_cpu"></a> [jkg\_cpu](#input\_jkg\_cpu) | Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
 | <a name="input_jkg_memory"></a> [jkg\_memory](#input\_jkg\_memory) | Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `3072` | no |
 | <a name="input_jkg_secret"></a> [jkg\_secret](#input\_jkg\_secret) | The jupyter kernel gateway secret name | `string` | n/a | yes |
