@@ -586,18 +586,6 @@ variable "db_dg_password" {
   sensitive   = true
 }
 
-variable "s3_bucket_region" {
-  description = "The S3 Bucket region for a stand."
-  type        = string
-  nullable    = false
-}
-
-variable "s3_bucket_name" {
-  description = "The S3 Bucket name of a stand."
-  type        = string
-  nullable    = false
-}
-
 variable "jkg_secret" {
   description = "The jupyter kernel gateway secret name"
   type        = string
