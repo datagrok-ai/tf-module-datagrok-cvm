@@ -2,7 +2,7 @@ resource "random_string" "lb_id" {
   for_each = local.targets
   length   = 2
   special  = false
-  keepers  = {
+  keepers = {
     target_type = each.value["target_type"]
 
   }
@@ -62,22 +62,22 @@ module "lb_ext" {
       to_port     = 80
       protocol    = "tcp"
       description = "Access to HTTP"
-      cidr_ipv4 = var.lb_access_cidr_blocks
+      cidr_ipv4   = var.lb_access_cidr_blocks
     },
     all_https = {
       from_port   = 443
       to_port     = 443
       protocol    = "tcp"
       description = "Access to HTTPS"
-      cidr_ipv4 = var.lb_access_cidr_blocks
+      cidr_ipv4   = var.lb_access_cidr_blocks
     }
   }
   security_group_egress_rules = {
     cvm = {
-      from_port                = 0
-      to_port                  = 65535
-      protocol                 = "tcp"
-      description              = "CVM egress rules from LB to ECS"
+      from_port                    = 0
+      to_port                      = 65535
+      protocol                     = "tcp"
+      description                  = "CVM egress rules from LB to ECS"
       referenced_security_group_id = module.sg.security_group_id
     }
   }
@@ -144,22 +144,22 @@ module "lb_int" {
       to_port     = 80
       protocol    = "tcp"
       description = "Access to HTTP"
-      cidr_ipv4 = try(module.vpc[0].vpc_cidr_block, var.cidr)
+      cidr_ipv4   = try(module.vpc[0].vpc_cidr_block, var.cidr)
     },
     vpc_cvm = {
       from_port   = 8090
       to_port     = 8090
       protocol    = "tcp"
       description = "Access Datagrok to CVM"
-      cidr_ipv4 = try(module.vpc[0].vpc_cidr_block, var.cidr)
+      cidr_ipv4   = try(module.vpc[0].vpc_cidr_block, var.cidr)
     }
   }
   security_group_egress_rules = {
-    cvm =     {
-      from_port                = 0
-      to_port                  = 65535
-      protocol                 = "tcp"
-      description              = "CVM egress rules from LB to ECS"
+    cvm = {
+      from_port                    = 0
+      to_port                      = 65535
+      protocol                     = "tcp"
+      description                  = "CVM egress rules from LB to ECS"
       referenced_security_group_id = module.sg.security_group_id
     },
   }
