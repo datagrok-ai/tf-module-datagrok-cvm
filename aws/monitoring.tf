@@ -315,7 +315,7 @@ resource "aws_cloudwatch_metric_alarm" "datagrok_lb_5xx_count" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lb_target_5xx_count" {
-  for_each               = var.monitoring.alarms_enabled ? local.targets : {}
+  for_each            = var.monitoring.alarms_enabled ? local.targets : {}
   alarm_name          = "datagrok-lb-target-${module.lb_ext.target_groups[each.key].name}-5xx"
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
