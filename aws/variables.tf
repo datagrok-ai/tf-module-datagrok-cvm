@@ -376,20 +376,6 @@ variable "cloudwatch_log_group_arn" {
   description = "The ARM of existing CloudWatch Log Group to use with Datagrok."
 }
 
-variable "docker_grok_compute_image" {
-  type        = string
-  default     = "docker.io/datagrok/grok_compute"
-  nullable    = false
-  description = "Grok Compute Docker Image registry location. By default the official image from Docker Hub will be used."
-}
-
-variable "docker_grok_compute_tag" {
-  type        = string
-  default     = "latest"
-  nullable    = false
-  description = "Tag from Docker registry for Grok Compute Docker Image"
-}
-
 variable "docker_jkg_image" {
   type        = string
   default     = "docker.io/datagrok/jupyter_kernel_gateway"
@@ -416,20 +402,6 @@ variable "docker_jn_tag" {
   default     = "latest"
   nullable    = false
   description = "Tag from Docker registry for Jupyter Notebook Docker Image"
-}
-
-variable "docker_h2o_image" {
-  type        = string
-  default     = "docker.io/datagrok/h2o"
-  nullable    = false
-  description = "H2O Docker Image registry location. By default the official image from Docker Hub will be used."
-}
-
-variable "docker_h2o_tag" {
-  type        = string
-  default     = "latest"
-  nullable    = false
-  description = "Tag from Docker registry for H2O Docker Image"
 }
 
 variable "create_cloudwatch_log_group" {
@@ -486,34 +458,6 @@ variable "enable_route53_logging" {
   description = "Specifies whether Logging requests using server access logging for Datagrok Route53 zone are enabled. We recommend to set it to true for production stand."
 }
 
-variable "grok_compute_container_memory_reservation" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the Grok Compute container."
-}
-
-variable "grok_compute_container_cpu" {
-  type        = number
-  default     = 256
-  nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the Grok Compute container."
-}
-
-variable "grok_compute_memory" {
-  type        = number
-  default     = 2048
-  nullable    = false
-  description = "Amount (in MiB) of memory used by the Grok Compute FARGATE task. The hard limit of memory (in MiB) to present to the task."
-}
-
-variable "grok_compute_cpu" {
-  type        = number
-  default     = 1024
-  nullable    = false
-  description = "Number of cpu units used by the Grok Compute FARGATE task. The hard limit of CPU units to present for the task."
-}
-
 variable "jkg_container_memory_reservation" {
   type        = number
   default     = 512
@@ -568,34 +512,6 @@ variable "jn_cpu" {
   default     = 512
   nullable    = false
   description = "Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task."
-}
-
-variable "h2o_container_memory_reservation" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the H2O container."
-}
-
-variable "h2o_container_cpu" {
-  type        = number
-  default     = 256
-  nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the H2O container."
-}
-
-variable "h2o_memory" {
-  type        = number
-  default     = 2048
-  nullable    = false
-  description = "Amount (in MiB) of memory used by the H2O FARGATE task. The hard limit of memory (in MiB) to present to the task."
-}
-
-variable "h2o_cpu" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "Number of cpu units used by the H2O FARGATE task. The hard limit of CPU units to present for the task."
 }
 
 variable "bucket_logging" {

@@ -15,10 +15,6 @@ locals {
   create_kms     = var.custom_kms_key && !try(length(var.kms_key) > 0, false)
 
   images = {
-    grok_compute = {
-      image = var.docker_grok_compute_image
-      tag   = var.docker_grok_compute_tag == "latest" ? "${var.docker_grok_compute_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_grok_compute_tag
-    },
     jupyter_kernel_gateway = {
       image = var.docker_jkg_image
       tag   = var.docker_jkg_tag == "latest" ? "${var.docker_jkg_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jkg_tag
@@ -27,61 +23,18 @@ locals {
       image = var.docker_jn_image
       tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
     },
-    h2o = {
-      image = var.docker_h2o_image
-      tag   = var.docker_h2o_tag == "latest" ? "${var.docker_h2o_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_h2o_tag
-    },
     "ecs-searchdomain-sidecar-${var.name}-${var.environment}" = {
       image = "docker/ecs-searchdomain-sidecar"
       tag   = "1.0"
     }
   }
 
-  targets = [
-    {
-      name             = "gc"
-      backend_protocol = "HTTP"
-      backend_port     = 5005
-      target_type      = aws_ecs_task_definition.grok_compute.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/grok_compute/info"
-        matcher             = "200"
-      }
-    },
-    {
-      name             = "jkg"
-      backend_protocol = "HTTP"
-      backend_port     = 8888
-      target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/jupyter/api/swagger.yaml"
-        matcher             = "200"
-      }
-    },
-    {
-      name             = "jkgH"
-      backend_protocol = "HTTP"
-      backend_port     = 5005
-      target_type      = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/jupyter/helper/info"
-        matcher             = "200"
-      }
-    },
-    {
-      name             = "jn"
-      backend_protocol = "HTTP"
-      backend_port     = 8889
-      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
+  targets = {
+    jn = {
+      create_attachment = false
+      backend_protocol  = "HTTP"
+      backend_port      = 8889
+      target_type       = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
       health_check = {
         enabled             = true
         interval            = 60
@@ -89,12 +42,14 @@ locals {
         path                = "/notebook/api"
         matcher             = "200"
       }
+      priority   = 4
+      conditions = [{ path_pattern = { values = ["/notebook/helper/*"] } }]
     },
-    {
-      name             = "jnH"
-      backend_protocol = "HTTP"
-      backend_port     = 5005
-      target_type      = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
+    jnH = {
+      create_attachment = false
+      backend_protocol  = "HTTP"
+      backend_port      = 5005
+      target_type       = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
       health_check = {
         enabled             = true
         interval            = 60
@@ -102,34 +57,10 @@ locals {
         path                = "/notebook/helper/info"
         matcher             = "200"
       }
-    },
-    {
-      name             = "h2oH"
-      backend_protocol = "HTTP"
-      backend_port     = 5005
-      target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/helper/info"
-        matcher             = "200"
-      }
-    },
-    {
-      name             = "h2o"
-      backend_protocol = "HTTP"
-      backend_port     = 54321
-      target_type      = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/3/About"
-        matcher             = "200"
-      }
+      priority   = 5
+      conditions = [{ path_pattern = { values = ["/notebook/*"] } }]
     }
-  ]
+  }
 }
 
 data "aws_availability_zones" "available" {
