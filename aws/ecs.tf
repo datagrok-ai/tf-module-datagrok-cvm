@@ -48,28 +48,6 @@ module "ecs" {
 
   tags = local.tags
 }
-# TODO: check AWS principal (autoscaling group) for ecs
-#resource "aws_secretsmanager_secret_policy" "docker_hub" {
-#  count      = try(length(var.docker_hub_secret_arn) > 0, false) ? 0 : 1
-#  secret_arn = aws_secretsmanager_secret.docker_hub[0].arn
-#
-#  policy = <<POLICY
-#{
-#  "Version": "2012-10-17",
-#  "Statement": [
-#    {
-#      "Sid": "EnableAnotherAWSAccountToReadTheSecret",
-#      "Effect": "Allow",
-#      "Principal": {
-#        "AWS": ""
-#      },
-#      "Action": "secretsmanager:GetSecretValue",
-#      "Resource": "*"
-#    }
-#  ]
-#}
-#POLICY
-#}
 
 resource "aws_secretsmanager_secret" "docker_hub" {
   count       = try(var.docker_hub_credentials.create_secret, false) && !var.ecr_enabled && var.ecs_launch_type != "FARGATE" ? 1 : 0
@@ -128,12 +106,6 @@ resource "aws_ecr_repository_policy" "ecr" {
     ]
   })
 }
-
-# https://github.com/mathspace/terraform-aws-ecr-docker-image/blob/master/hash.shÏ
-#data "external" "docker_hash" {
-#  for_each = var.ecr_enabled ? local.images : {}
-#  program  = ["${path.module}/docker_hash.sh", each.value["image"], each.value["tag"]]
-#}
 
 resource "null_resource" "ecr_push" {
   for_each = var.ecr_enabled ? local.images : {}
@@ -229,33 +201,6 @@ resource "aws_iam_policy" "docker_hub" {
     )
   })
 }
-data "aws_s3_bucket" "datagrok" {
-  bucket = var.s3_bucket_name
-}
-resource "aws_iam_policy" "s3" {
-  name        = "${local.ecs_name}_s3"
-  description = "Datagrok CVM policy to access S3 storage from tasks"
-
-  policy = jsonencode({
-    "Version" = "2012-10-17",
-    "Statement" = [
-      {
-        "Action" = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject",
-          "s3:ListBucket"
-        ],
-        "Condition" = {},
-        "Effect"    = "Allow",
-        "Resource" = [
-          data.aws_s3_bucket.datagrok.arn,
-          "${data.aws_s3_bucket.datagrok.arn}/*"
-        ]
-      }
-    ]
-  })
-}
 resource "aws_iam_role" "exec" {
   name = "${local.ecs_name}_exec"
 
@@ -297,77 +242,12 @@ resource "aws_iam_role" "task" {
   })
   managed_policy_arns = compact(concat([
     aws_iam_policy.exec.arn,
-    aws_iam_policy.s3.arn,
     var.ecr_enabled ? aws_iam_policy.ecr[0].arn : (var.ecs_launch_type == "FARGATE" ? "" : aws_iam_policy.docker_hub[0].arn)
   ], var.task_iam_policies))
-  #  managed_policy_arns = [aws_iam_policy.task.arn]
 
   tags = local.tags
 }
 
-resource "aws_ecs_task_definition" "grok_compute" {
-  depends_on = [null_resource.ecr_push]
-  family     = "${local.ecs_name}_grok_compute"
-
-  container_definitions = jsonencode([
-    {
-      name = "resolv_conf"
-      command = [
-        "${data.aws_region.current.name}.compute.internal",
-        "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.cn.internal"
-      ]
-      essential = false
-      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
-      logConfiguration = {
-        LogDriver = "awslogs"
-        Options = {
-          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "grok_compute"
-        }
-      }
-      memoryReservation = 100
-      }, merge({
-        name  = "grok_compute"
-        image = "${var.ecr_enabled ? aws_ecr_repository.ecr["grok_compute"].repository_url : var.docker_grok_compute_image}:${var.ecr_enabled ? local.images["grok_compute"]["tag"] : var.docker_grok_compute_tag}"
-        dependsOn = [
-          {
-            "condition" : "SUCCESS",
-            "containerName" : "resolv_conf"
-          }
-        ]
-        essential = true
-        logConfiguration = {
-          LogDriver = "awslogs",
-          Options = {
-            awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-            awslogs-region        = data.aws_region.current.name
-            awslogs-stream-prefix = "grok_compute"
-          }
-        }
-        portMappings = [
-          {
-            hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
-            protocol      = "tcp"
-            containerPort = 5005
-          }
-        ]
-        memoryReservation = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory - 200 : var.grok_compute_container_memory_reservation
-        cpu               = var.grok_compute_container_cpu
-        }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
-          repositoryCredentials = {
-            credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-          }
-    }), )
-  ])
-  cpu                      = var.ecs_launch_type == "FARGATE" ? var.grok_compute_cpu : null
-  memory                   = var.ecs_launch_type == "FARGATE" ? var.grok_compute_memory : null
-  network_mode             = var.ecs_launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  execution_role_arn       = aws_iam_role.exec.arn
-  task_role_arn            = aws_iam_role.task.arn
-  requires_compatibilities = [var.ecs_launch_type]
-}
 
 data "aws_secretsmanager_secret" "jkg_secret" {
   name = var.jkg_secret
@@ -415,8 +295,6 @@ resource "aws_ecs_task_definition" "jkg" {
           name = "GROK_PARAMETERS",
           value = jsonencode(
             {
-              #              amazonStorageRegion : var.s3_bucket_region,
-              #              amazonStorageBucket : var.s3_bucket_name,
               datlasApiUrl : var.datlas_api_url,
               dbServer : var.db_instance_address,
               dbPort : var.db_instance_port,
@@ -543,98 +421,11 @@ resource "aws_ecs_task_definition" "jn" {
   task_role_arn            = aws_iam_role.task.arn
   requires_compatibilities = [var.ecs_launch_type]
 }
-resource "aws_ecs_task_definition" "h2o" {
-  depends_on = [null_resource.ecr_push]
-  family     = "${local.ecs_name}_h2o"
-
-  container_definitions = jsonencode([
-    {
-      name = "resolv_conf"
-      command = [
-        "${data.aws_region.current.name}.compute.internal",
-        "datagrok.${var.name}.${var.environment}.internal",
-        "datagrok.${var.name}.${var.environment}.cn.internal"
-      ]
-      essential = false
-      image     = "${var.ecr_enabled ? aws_ecr_repository.ecr["ecs-searchdomain-sidecar-${var.name}-${var.environment}"].repository_url : local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["image"]}:${local.images["ecs-searchdomain-sidecar-${var.name}-${var.environment}"]["tag"]}"
-      logConfiguration = {
-        LogDriver = "awslogs",
-        Options = {
-          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "h2o"
-        }
-      }
-      memoryReservation = 100
-    },
-    merge({
-      name  = "h2o"
-      image = "${var.ecr_enabled ? aws_ecr_repository.ecr["h2o"].repository_url : var.docker_h2o_image}:${var.ecr_enabled ? local.images["h2o"]["tag"] : var.docker_h2o_tag}"
-      dependsOn = [
-        {
-          "condition" : "SUCCESS",
-          "containerName" : "resolv_conf"
-        }
-      ]
-      essential = true
-      logConfiguration = {
-        LogDriver = "awslogs",
-        Options = {
-          awslogs-group         = try(aws_cloudwatch_log_group.ecs[0].name, var.cloudwatch_log_group_name)
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "h2o"
-        }
-      }
-      portMappings = [
-        {
-          containerPort = 5005
-          hostPort      = var.ecs_launch_type == "FARGATE" ? 5005 : 0
-        },
-        {
-          containerPort = 54321
-          hostPort      = var.ecs_launch_type == "FARGATE" ? 54321 : 0
-        },
-      ]
-      memoryReservation = var.ecs_launch_type == "FARGATE" ? var.h2o_memory - 200 : var.h2o_container_memory_reservation
-      cpu               = var.h2o_container_cpu
-      }, var.ecr_enabled ? {} : (var.ecs_launch_type == "FARGATE" ? {} : {
-        repositoryCredentials = {
-          credentialsParameter = try(aws_secretsmanager_secret.docker_hub[0].arn, var.docker_hub_credentials.secret_arn)
-        }
-    }))
-  ])
-  cpu                      = var.ecs_launch_type == "FARGATE" ? var.h2o_cpu : null
-  memory                   = var.ecs_launch_type == "FARGATE" ? var.h2o_memory : null
-  network_mode             = var.ecs_launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  execution_role_arn       = aws_iam_role.exec.arn
-  task_role_arn            = aws_iam_role.task.arn
-  requires_compatibilities = [var.ecs_launch_type]
-}
 resource "aws_service_discovery_private_dns_namespace" "datagrok" {
   count       = var.service_discovery_namespace.create && var.ecs_launch_type == "FARGATE" ? 1 : 0
   name        = "datagrok.${var.name}.${var.environment}.cn.internal"
   description = "Datagrok Service Discovery"
   vpc         = try(module.vpc[0].vpc_id, var.vpc_id)
-}
-resource "aws_service_discovery_service" "grok_compute" {
-  count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
-  name        = "grok_compute"
-  description = "Datagrok CVM Grok Compute service discovery entry"
-
-  dns_config {
-    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
-
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-
-    routing_policy = "MULTIVALUE"
-  }
-
-  health_check_custom_config {
-    failure_threshold = 1
-  }
 }
 resource "aws_service_discovery_service" "jkg" {
   count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
@@ -676,139 +467,7 @@ resource "aws_service_discovery_service" "jn" {
     failure_threshold = 1
   }
 }
-resource "aws_service_discovery_service" "h2o" {
-  count       = var.ecs_launch_type == "FARGATE" ? 1 : 0
-  name        = "h2o"
-  description = "Datagrok CVM H2O service discovery entry"
 
-  dns_config {
-    namespace_id = var.service_discovery_namespace.create ? aws_service_discovery_private_dns_namespace.datagrok[0].id : var.service_discovery_namespace.id
-
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-
-    routing_policy = "MULTIVALUE"
-  }
-
-  health_check_custom_config {
-    failure_threshold = 1
-  }
-}
-#resource "aws_iam_policy" "service" {
-#  name        = "${local.ecs_name}_service"
-#  description = "Datagrok CVM policy for ECS Service to access AWS resources"
-#
-#  policy = jsonencode({
-#    "Version" : "2012-10-17",
-#    "Statement" : [
-#      {
-#        "Sid" : "0",
-#        "Effect" : "Allow",
-#        "Action" : [
-#          "elasticloadbalancing:RegisterTargets",
-#          "elasticloadbalancing:DeregisterTargets"
-#        ],
-#        "Resource" : concat(module.lb_ext.target_group_arns, module.lb_int.target_group_arns)
-#      },
-#      {
-#        "Sid" : "1",
-#        "Effect" : "Allow",
-#        "Action" : [
-#          "ec2:DescribeInstances",
-#          "elasticloadbalancing:DescribeTags",
-#          "ec2:DescribeTags",
-#          "elasticloadbalancing:DescribeLoadBalancers",
-#          "elasticloadbalancing:DescribeTargetHealth",
-#          "elasticloadbalancing:DescribeTargetGroups",
-#          "elasticloadbalancing:DescribeInstanceHealth",
-#          "ec2:DescribeInstanceStatus"
-#        ],
-#        "Resource" : "*"
-#      }
-#    ]
-#  })
-#}
-#resource "aws_iam_role" "service" {
-#  name = "${local.ecs_name}_service"
-#
-#  assume_role_policy  = jsonencode({
-#    Version   = "2012-10-17"
-#    Statement = [
-#      {
-#        Action    = "sts:AssumeRole"
-#        Effect    = "Allow"
-#        Sid       = ""
-#        Principal = {
-#          Service = ["ec2.amazonaws.com"]
-#        }
-#      },
-#    ]
-#  })
-#  managed_policy_arns = [aws_iam_policy.service.arn]
-#
-#  tags = local.tags
-#}
-#resource "aws_iam_service_linked_role" "service" {
-#  count            = try(length(var.iam_service_linked_role) > 0, false) ? 0 : 1
-#  aws_service_name = "ecs.amazonaws.com"
-#}
-
-resource "aws_ecs_service" "grok_compute" {
-  name            = "${local.ecs_name}_grok_compute"
-  cluster         = module.ecs.cluster_arn
-  task_definition = aws_ecs_task_definition.grok_compute.arn
-  launch_type     = var.ecs_launch_type
-
-  desired_count                      = 1
-  deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 100
-  scheduling_strategy                = "REPLICA"
-  deployment_controller {
-    type = "ECS"
-  }
-  enable_execute_command = true
-  force_new_deployment   = true
-
-  #  iam_role = aws_ecs_task_definition.grok_compute.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
-
-  dynamic "service_registries" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [
-      {
-        registry_arn : aws_service_discovery_service.grok_compute[0].arn
-      }
-    ] : []
-    content {
-      registry_arn = service_registries.value["registry_arn"]
-    }
-  }
-
-  load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[0]
-    container_name   = "grok_compute"
-    container_port   = 5005
-  }
-  load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[0]
-    container_name   = "grok_compute"
-    container_port   = 5005
-  }
-
-  dynamic "network_configuration" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [
-      {
-        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
-        security_groups : [module.sg.security_group_id]
-      }
-    ] : []
-    content {
-      subnets          = network_configuration.value["subnets"]
-      security_groups  = network_configuration.value["security_groups"]
-      assign_public_ip = false
-    }
-  }
-}
 resource "aws_ecs_service" "jkg" {
   name            = "${local.ecs_name}_jupyter_kernel_gateway"
   cluster         = module.ecs.cluster_arn
@@ -825,8 +484,6 @@ resource "aws_ecs_service" "jkg" {
   enable_execute_command = true
   force_new_deployment   = true
 
-  #  iam_role = aws_ecs_task_definition.jkg.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
-
   dynamic "service_registries" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
@@ -836,27 +493,6 @@ resource "aws_ecs_service" "jkg" {
     content {
       registry_arn = service_registries.value["registry_arn"]
     }
-  }
-
-  load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[1]
-    container_name   = "jupyter_kernel_gateway"
-    container_port   = 8888
-  }
-  load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[2]
-    container_name   = "jupyter_kernel_gateway"
-    container_port   = 5005
-  }
-  load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[1]
-    container_name   = "jupyter_kernel_gateway"
-    container_port   = 8888
-  }
-  load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[2]
-    container_name   = "jupyter_kernel_gateway"
-    container_port   = 5005
   }
 
   dynamic "network_configuration" {
@@ -889,8 +525,6 @@ resource "aws_ecs_service" "jn" {
   enable_execute_command = true
   force_new_deployment   = true
 
-  #  iam_role = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
-
   dynamic "service_registries" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
@@ -903,88 +537,24 @@ resource "aws_ecs_service" "jn" {
   }
 
   load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[3]
+    target_group_arn = module.lb_ext.target_groups["jn"].arn
     container_name   = "jupyter_notebook"
     container_port   = 8889
   }
   load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[4]
+    target_group_arn = module.lb_ext.target_groups["jnH"].arn
     container_name   = "jupyter_notebook"
     container_port   = 5005
   }
   load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[3]
+    target_group_arn = module.lb_int.target_groups["jn"].arn
     container_name   = "jupyter_notebook"
     container_port   = 8889
   }
   load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[4]
+    target_group_arn = module.lb_int.target_groups["jnH"].arn
     container_name   = "jupyter_notebook"
     container_port   = 5005
-  }
-
-  dynamic "network_configuration" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [
-      {
-        subnets : try(module.vpc[0].private_subnets, var.private_subnet_ids)
-        security_groups : [module.sg.security_group_id]
-      }
-    ] : []
-    content {
-      subnets          = network_configuration.value["subnets"]
-      security_groups  = network_configuration.value["security_groups"]
-      assign_public_ip = false
-    }
-  }
-}
-resource "aws_ecs_service" "h2o" {
-  name            = "${local.ecs_name}_h2o"
-  cluster         = module.ecs.cluster_arn
-  task_definition = aws_ecs_task_definition.h2o.arn
-  launch_type     = var.ecs_launch_type
-
-  desired_count                      = 1
-  deployment_maximum_percent         = var.ecs_launch_type == "FARGATE" ? 200 : 100
-  deployment_minimum_healthy_percent = var.ecs_launch_type == "FARGATE" ? 100 : 0
-  scheduling_strategy                = "REPLICA"
-  deployment_controller {
-    type = "ECS"
-  }
-  enable_execute_command = true
-  force_new_deployment   = true
-
-  #  iam_role = aws_ecs_task_definition.h2o.network_mode == "awsvpc" ? null : try(length(var.iam_service_linked_role) > 0, false) ? var.iam_service_linked_role : aws_iam_service_linked_role.service[0].arn
-
-  dynamic "service_registries" {
-    for_each = var.ecs_launch_type == "FARGATE" ? [
-      {
-        registry_arn : aws_service_discovery_service.h2o[0].arn
-      }
-    ] : []
-    content {
-      registry_arn = service_registries.value["registry_arn"]
-    }
-  }
-
-  load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[5]
-    container_name   = "h2o"
-    container_port   = 5005
-  }
-  load_balancer {
-    target_group_arn = module.lb_ext.target_group_arns[6]
-    container_name   = "h2o"
-    container_port   = 54321
-  }
-  load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[5]
-    container_name   = "h2o"
-    container_port   = 5005
-  }
-  load_balancer {
-    target_group_arn = module.lb_int.target_group_arns[6]
-    container_name   = "h2o"
-    container_port   = 54321
   }
 
   dynamic "network_configuration" {

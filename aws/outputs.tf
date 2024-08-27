@@ -130,10 +130,10 @@ output "route53_external_cloudwatch_log_group_arn" {
 
 output "alb_external_arn" {
   description = "The ARN of the external Application Load balancer"
-  value       = module.lb_ext.lb_arn
+  value       = module.lb_ext.arn
 }
 
 output "alb_internal_arn" {
   description = "The ARN of the external Application Load balancer"
-  value       = module.lb_int.lb_arn
+  value       = module.lb_int.arn
 }

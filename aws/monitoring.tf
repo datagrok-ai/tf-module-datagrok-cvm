@@ -47,64 +47,6 @@ module "notify_slack" {
   slack_emoji          = var.monitoring.slack_emoji
 }
 
-resource "aws_cloudwatch_metric_alarm" "grok_compute_task_count" {
-  count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights ? 1 : 0
-  alarm_name          = "${local.ecs_name}-grok_compute-task-count"
-  comparison_operator = "LessThanThreshold"
-  threshold           = "1"
-  evaluation_periods  = "2"
-  treat_missing_data  = "ignore"
-  alarm_description   = "This metric monitors ${local.ecs_name} grok_compute ECS tasks count"
-  alarm_actions = compact([
-    var.monitoring.slack_alerts ?
-    module.notify_slack.slack_topic_arn :
-    "",
-    var.monitoring.email_alerts ?
-    module.sns_topic.sns_topic_arn :
-    "",
-    !var.monitoring.create_sns_topic ?
-    var.monitoring.sns_topic_arn :
-    ""
-  ])
-  tags = local.tags
-
-  metric_query {
-    id          = "expression"
-    expression  = "IF(desired > running, 0, 1)"
-    label       = "Task Failures"
-    return_data = "true"
-  }
-
-  metric_query {
-    id = "desired"
-
-    metric {
-      metric_name = "DesiredTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.grok_compute.name
-      }
-    }
-  }
-
-  metric_query {
-    id = "running"
-
-    metric {
-      metric_name = "RunningTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.grok_compute.name
-      }
-    }
-  }
-}
 resource "aws_cloudwatch_metric_alarm" "jkg_task_count" {
   count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights ? 1 : 0
   alarm_name          = "${local.ecs_name}-jkg-task-count"
@@ -221,64 +163,6 @@ resource "aws_cloudwatch_metric_alarm" "jn_task_count" {
     }
   }
 }
-resource "aws_cloudwatch_metric_alarm" "h2o_task_count" {
-  count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights ? 1 : 0
-  alarm_name          = "${local.ecs_name}-h2o-task-count"
-  comparison_operator = "LessThanThreshold"
-  threshold           = "1"
-  evaluation_periods  = "2"
-  treat_missing_data  = "ignore"
-  alarm_description   = "This metric monitors ${local.ecs_name} H2O ECS tasks count"
-  alarm_actions = compact([
-    var.monitoring.slack_alerts ?
-    module.notify_slack.slack_topic_arn :
-    "",
-    var.monitoring.email_alerts ?
-    module.sns_topic.sns_topic_arn :
-    "",
-    !var.monitoring.create_sns_topic ?
-    var.monitoring.sns_topic_arn :
-    ""
-  ])
-  tags = local.tags
-
-  metric_query {
-    id          = "expression"
-    expression  = "IF(desired > running, 0, 1)"
-    label       = "Task Failures"
-    return_data = "true"
-  }
-
-  metric_query {
-    id = "desired"
-
-    metric {
-      metric_name = "DesiredTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.h2o.name
-      }
-    }
-  }
-
-  metric_query {
-    id = "running"
-
-    metric {
-      metric_name = "RunningTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.h2o.name
-      }
-    }
-  }
-}
 
 resource "aws_cloudwatch_metric_alarm" "instance_count" {
   count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights && var.ecs_launch_type == "EC2" ? 1 : 0
@@ -370,11 +254,11 @@ resource "aws_cloudwatch_metric_alarm" "high_ram" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lb_target" {
-  count               = var.monitoring.alarms_enabled ? length(local.targets) : 0
-  alarm_name          = "datagrok-lb-target-${module.lb_ext.target_group_names[count.index]}"
+  for_each            = var.monitoring.alarms_enabled ? local.targets : {}
+  alarm_name          = "datagrok-lb-target-${module.lb_ext.target_groups[each.key].name}"
   comparison_operator = "LessThanThreshold"
   threshold           = "1"
-  alarm_description   = "${local.ecs_name} external ALB target group ${module.lb_ext.target_group_names[count.index]} registered targets alarms"
+  alarm_description   = "${local.ecs_name} external ALB target group ${module.lb_ext.target_groups[each.key].name} registered targets alarms"
   treat_missing_data  = "ignore"
   period              = "60"
   evaluation_periods  = "1"
@@ -383,8 +267,8 @@ resource "aws_cloudwatch_metric_alarm" "lb_target" {
   metric_name         = "HealthyHostCount"
   namespace           = "AWS/ApplicationELB"
   dimensions = {
-    TargetGroup  = module.lb_ext.target_group_arn_suffixes[count.index]
-    LoadBalancer = module.lb_ext.lb_arn_suffix
+    TargetGroup  = module.lb_ext.target_groups[each.key].arn_suffix
+    LoadBalancer = module.lb_ext.arn_suffix
   }
   alarm_actions = compact([
     var.monitoring.slack_alerts ?
@@ -414,7 +298,7 @@ resource "aws_cloudwatch_metric_alarm" "datagrok_lb_5xx_count" {
   datapoints_to_alarm = 1
   treat_missing_data  = "notBreaching"
   dimensions = {
-    "LoadBalancer" = module.lb_ext.lb_arn_suffix
+    "LoadBalancer" = module.lb_ext.arn_suffix
   }
   alarm_actions = compact([
     var.monitoring.slack_alerts ?
@@ -431,11 +315,11 @@ resource "aws_cloudwatch_metric_alarm" "datagrok_lb_5xx_count" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lb_target_5xx_count" {
-  count               = var.monitoring.alarms_enabled ? length(local.targets) : 0
-  alarm_name          = "datagrok-lb-target-${module.lb_ext.target_group_names[count.index]}-5xx"
+  for_each            = var.monitoring.alarms_enabled ? local.targets : {}
+  alarm_name          = "datagrok-lb-target-${module.lb_ext.target_groups[each.key].name}-5xx"
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
-  alarm_description   = "${local.ecs_name} external ALB target group ${module.lb_ext.target_group_names[count.index]} registered 5XX errors"
+  alarm_description   = "${local.ecs_name} external ALB target group ${module.lb_ext.target_groups[each.key].name} registered 5XX errors"
   treat_missing_data  = "notBreaching"
   period              = "120"
   evaluation_periods  = "1"
@@ -444,8 +328,8 @@ resource "aws_cloudwatch_metric_alarm" "lb_target_5xx_count" {
   metric_name         = "HTTPCode_Target_5XX_Count"
   namespace           = "AWS/ApplicationELB"
   dimensions = {
-    TargetGroup  = module.lb_ext.target_group_arn_suffixes[count.index]
-    LoadBalancer = module.lb_ext.lb_arn_suffix
+    TargetGroup  = module.lb_ext.target_groups[each.key].arn_suffix
+    LoadBalancer = module.lb_ext.arn_suffix
   }
   alarm_actions = compact([
     var.monitoring.slack_alerts ?
