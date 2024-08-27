@@ -42,10 +42,8 @@ module "datagrok_cvm" {
 | <a name="module_acm"></a> [acm](#module\_acm) | registry.terraform.io/terraform-aws-modules/acm/aws | ~> 3.5.0 |
 | <a name="module_ecs"></a> [ecs](#module\_ecs) | registry.terraform.io/terraform-aws-modules/ecs/aws | ~> 4.1.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | registry.terraform.io/terraform-aws-modules/kms/aws | ~> 1.1.0 |
-| <a name="module_lb_ext"></a> [lb\_ext](#module\_lb\_ext) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 6.10.0 |
-| <a name="module_lb_ext_sg"></a> [lb\_ext\_sg](#module\_lb\_ext\_sg) | registry.terraform.io/terraform-aws-modules/security-group/aws | ~> 4.12.0 |
-| <a name="module_lb_int"></a> [lb\_int](#module\_lb\_int) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 6.10.0 |
-| <a name="module_lb_int_sg"></a> [lb\_int\_sg](#module\_lb\_int\_sg) | registry.terraform.io/terraform-aws-modules/security-group/aws | ~> 4.12.0 |
+| <a name="module_lb_ext"></a> [lb\_ext](#module\_lb\_ext) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 9.10.0 |
+| <a name="module_lb_int"></a> [lb\_int](#module\_lb\_int) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 9.10.0 |
 | <a name="module_log_bucket"></a> [log\_bucket](#module\_log\_bucket) | registry.terraform.io/terraform-aws-modules/s3-bucket/aws | ~> 3.3.0 |
 | <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | registry.terraform.io/terraform-aws-modules/notify-slack/aws | ~> 5.4.0 |
 | <a name="module_sg"></a> [sg](#module\_sg) | registry.terraform.io/terraform-aws-modules/security-group/aws | ~> 4.12.0 |
@@ -60,8 +58,6 @@ module "datagrok_cvm" {
 | [aws_cloudwatch_log_group.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_cloudwatch_log_resource_policy.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_resource_policy) | resource |
 | [aws_cloudwatch_metric_alarm.datagrok_lb_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.grok_compute_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.h2o_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_ram](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.instance_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
@@ -71,12 +67,8 @@ module "datagrok_cvm" {
 | [aws_cloudwatch_metric_alarm.lb_target_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_ecr_repository.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_ecr_repository_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository_policy) | resource |
-| [aws_ecs_service.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
-| [aws_ecs_service.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
-| [aws_ecs_task_definition.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
-| [aws_ecs_task_definition.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_ecs_task_definition.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_ecs_task_definition.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_instance_profile.ec2_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
@@ -84,7 +76,6 @@ module "datagrok_cvm" {
 | [aws_iam_policy.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
@@ -93,15 +84,12 @@ module "datagrok_cvm" {
 | [aws_kms_ciphertext.slack_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_ciphertext) | resource |
 | [aws_route53_query_log.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_query_log) | resource |
 | [aws_route53_record.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
-| [aws_route53_record.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_route53_zone.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_secretsmanager_secret.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_service_discovery_private_dns_namespace.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) | resource |
-| [aws_service_discovery_service.grok_compute](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
-| [aws_service_discovery_service.h2o](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_service_discovery_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_service_discovery_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_sns_topic_subscription.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
@@ -114,7 +102,6 @@ module "datagrok_cvm" {
 | [aws_iam_policy_document.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
-| [aws_s3_bucket.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
 | [aws_secretsmanager_secret.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret) | data source |
 | [aws_secretsmanager_secret_version.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 
@@ -138,10 +125,6 @@ module "datagrok_cvm" {
 | <a name="input_db_dg_password"></a> [db\_dg\_password](#input\_db\_dg\_password) | The password to the Datagrok DB | `string` | n/a | yes |
 | <a name="input_db_instance_address"></a> [db\_instance\_address](#input\_db\_instance\_address) | The address of the Datagrok DB | `string` | n/a | yes |
 | <a name="input_db_instance_port"></a> [db\_instance\_port](#input\_db\_instance\_port) | The port of the Datagrok DB | `number` | n/a | yes |
-| <a name="input_docker_grok_compute_image"></a> [docker\_grok\_compute\_image](#input\_docker\_grok\_compute\_image) | Grok Compute Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/grok_compute"` | no |
-| <a name="input_docker_grok_compute_tag"></a> [docker\_grok\_compute\_tag](#input\_docker\_grok\_compute\_tag) | Tag from Docker registry for Grok Compute Docker Image | `string` | `"latest"` | no |
-| <a name="input_docker_h2o_image"></a> [docker\_h2o\_image](#input\_docker\_h2o\_image) | H2O Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/h2o"` | no |
-| <a name="input_docker_h2o_tag"></a> [docker\_h2o\_tag](#input\_docker\_h2o\_tag) | Tag from Docker registry for H2O Docker Image | `string` | `"latest"` | no |
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br>`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br>`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables<br>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br>    create_secret = bool<br>    password      = optional(string)<br>    user          = optional(string)<br>    secret_arn    = optional(string)<br>  })</pre> | `null` | no |
 | <a name="input_docker_jkg_image"></a> [docker\_jkg\_image](#input\_docker\_jkg\_image) | Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_kernel_gateway"` | no |
 | <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no |
@@ -166,14 +149,6 @@ module "datagrok_cvm" {
 | <a name="input_flow_log_cloudwatch_log_group_name_prefix"></a> [flow\_log\_cloudwatch\_log\_group\_name\_prefix](#input\_flow\_log\_cloudwatch\_log\_group\_name\_prefix) | Flow logs CloudWatch Log Group name prefix. | `string` | `"/aws/vpc-flow-log/"` | no |
 | <a name="input_flow_log_log_format"></a> [flow\_log\_log\_format](#input\_flow\_log\_log\_format) | Flow logs format. | `string` | `null` | no |
 | <a name="input_gpu_enabled"></a> [gpu\_enabled](#input\_gpu\_enabled) | Specifies whether CVM should use GPU. | `bool` | `false` | no |
-| <a name="input_grok_compute_container_cpu"></a> [grok\_compute\_container\_cpu](#input\_grok\_compute\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Grok Compute container. | `number` | `256` | no |
-| <a name="input_grok_compute_container_memory_reservation"></a> [grok\_compute\_container\_memory\_reservation](#input\_grok\_compute\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Grok Compute container. | `number` | `512` | no |
-| <a name="input_grok_compute_cpu"></a> [grok\_compute\_cpu](#input\_grok\_compute\_cpu) | Number of cpu units used by the Grok Compute FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
-| <a name="input_grok_compute_memory"></a> [grok\_compute\_memory](#input\_grok\_compute\_memory) | Amount (in MiB) of memory used by the Grok Compute FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
-| <a name="input_h2o_container_cpu"></a> [h2o\_container\_cpu](#input\_h2o\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the H2O container. | `number` | `256` | no |
-| <a name="input_h2o_container_memory_reservation"></a> [h2o\_container\_memory\_reservation](#input\_h2o\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the H2O container. | `number` | `512` | no |
-| <a name="input_h2o_cpu"></a> [h2o\_cpu](#input\_h2o\_cpu) | Number of cpu units used by the H2O FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
-| <a name="input_h2o_memory"></a> [h2o\_memory](#input\_h2o\_memory) | Amount (in MiB) of memory used by the H2O FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type. The default value is the minimum recommended type. | `string` | `"c5.xlarge"` | no |
 | <a name="input_jkg_container_cpu"></a> [jkg\_container\_cpu](#input\_jkg\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Kernel Gateway container. | `number` | `256` | no |
 | <a name="input_jkg_container_memory_reservation"></a> [jkg\_container\_memory\_reservation](#input\_jkg\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Kernel Gateway container. | `number` | `512` | no |
@@ -200,8 +175,6 @@ module "datagrok_cvm" {
 | <a name="input_route53_enabled"></a> [route53\_enabled](#input\_route53\_enabled) | Specifies if the Route53 is used for DNS. | `bool` | `true` | no |
 | <a name="input_route53_internal_zone"></a> [route53\_internal\_zone](#input\_route53\_internal\_zone) | Route53 internal hosted zone ID. If it is not set create\_route53\_internal\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_record_name"></a> [route53\_record\_name](#input\_route53\_record\_name) | This is the name of record in Route53 for Datagrok. If if is not set the name along with environment will be used. | `string` | `null` | no |
-| <a name="input_s3_bucket_name"></a> [s3\_bucket\_name](#input\_s3\_bucket\_name) | The S3 Bucket name of a stand. | `string` | n/a | yes |
-| <a name="input_s3_bucket_region"></a> [s3\_bucket\_region](#input\_s3\_bucket\_region) | The S3 Bucket region for a stand. | `string` | n/a | yes |
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br>    create = bool<br>    id     = optional(string)<br>  })</pre> | <pre>{<br>  "create": true<br>}</pre> | no |
 | <a name="input_subject_alternative_names"></a> [subject\_alternative\_names](#input\_subject\_alternative\_names) | List for alternative names for ACM certificate | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Key-value map of resource tags. | `map(string)` | `{}` | no |
