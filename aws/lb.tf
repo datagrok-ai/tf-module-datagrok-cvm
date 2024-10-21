@@ -139,7 +139,7 @@ module "lb_ext" {
       action_type     = "fixed-response"
       fixed_response = {
         status_code  = 204
-        message_body = "No content. Try other endpoints for the URL: /jupyter, /notebook"
+        message_body = "No content. Try other endpoints for the URL: /notebook"
         content_type = "text/plain"
       }
       rules = {
@@ -172,13 +172,6 @@ module "lb_int" {
       protocol    = "tcp"
       description = "Access to HTTP"
       cidr_ipv4   = try(module.vpc[0].vpc_cidr_block, var.cidr)
-    },
-    vpc_cvm = {
-      from_port   = 8090
-      to_port     = 8090
-      protocol    = "tcp"
-      description = "Access Datagrok to CVM"
-      cidr_ipv4   = try(module.vpc[0].vpc_cidr_block, var.cidr)
     }
   }
   security_group_egress_rules = {
@@ -204,24 +197,13 @@ module "lb_int" {
   }
 
   listeners = {
-    http-https-redirect = {
-      action_type = "redirect"
+    cvm = {
       port        = 80
       protocol    = "HTTP"
-      redirect = {
-        port        = 443
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    cvm = {
-      port            = 443
-      protocol        = "HTTPS"
-      certificate_arn = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      action_type     = "fixed-response"
+      action_type = "fixed-response"
       fixed_response = {
         status_code  = 204
-        message_body = "No content. Try other endpoints for the URL: /jupyter, /notebook"
+        message_body = "No content. Try other endpoints for the URL: /notebook"
         content_type = "text/plain"
       }
       rules = {

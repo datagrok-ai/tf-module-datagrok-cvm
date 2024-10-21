@@ -42,8 +42,8 @@ locals {
         path                = "/notebook/api"
         matcher             = "200"
       }
-      priority   = 4
-      conditions = [{ path_pattern = { values = ["/notebook/helper/*"] } }]
+      priority   = 1
+      conditions = [{ path_pattern = { values = ["/notebook/*"] } }]
     },
     jnH = {
       create_attachment = false
@@ -57,8 +57,8 @@ locals {
         path                = "/notebook/helper/info"
         matcher             = "200"
       }
-      priority   = 5
-      conditions = [{ path_pattern = { values = ["/notebook/*"] } }]
+      priority   = 2
+      conditions = [{ path_pattern = { values = ["/notebook/helper/*"] } }]
     }
   }
 }
