@@ -197,7 +197,7 @@ module "lb_int" {
   }
 
   listeners = {
-    cvm = {
+    http = {
       port        = 80
       protocol    = "HTTP"
       action_type = "fixed-response"
