@@ -131,8 +131,8 @@ variable "lb_name" {
 }
 
 variable "lb_access_cidr_blocks" {
-  type        = string
-  default     = "0.0.0.0/0"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
   nullable    = false
   description = "The CIDR to from which the access Datagrok load balancer is allowed."
 }

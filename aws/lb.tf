@@ -44,18 +44,8 @@ module "acm" {
 
   tags = local.tags
 }
-module "lb_ext" {
-  source  = "registry.terraform.io/terraform-aws-modules/alb/aws"
-  version = "~> 9.10.0"
 
-  name                       = "${local.lb_name}-ext"
-  load_balancer_type         = "application"
-  vpc_id                     = try(module.vpc[0].vpc_id, var.vpc_id)
-  subnets                    = try(module.vpc[0].public_subnets, var.public_subnet_ids)
-  drop_invalid_header_fields = true
-
-  idle_timeout = 1200
-
+locals {
   security_group_ingress_rules = {
     all_http = {
       from_port   = 80
@@ -72,6 +62,43 @@ module "lb_ext" {
       cidr_ipv4   = var.lb_access_cidr_blocks
     }
   }
+  # {
+  # for key, value in local.targets :
+  # key => { priority = value.priority, actions = [{ type = "forward", target_group_key = key }], conditions = value.conditions }
+  # }
+}
+
+module "lb_ext" {
+  source  = "registry.terraform.io/terraform-aws-modules/alb/aws"
+  version = "~> 9.10.0"
+
+  name                       = "${local.lb_name}-ext"
+  load_balancer_type         = "application"
+  vpc_id                     = try(module.vpc[0].vpc_id, var.vpc_id)
+  subnets                    = try(module.vpc[0].public_subnets, var.public_subnet_ids)
+  drop_invalid_header_fields = true
+
+  idle_timeout = 1200
+
+  security_group_ingress_rules = merge(
+    {
+      for cidr in var.lb_access_cidr_blocks : "${cidr}_http" => {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        description = "Access to HTTP"
+        cidr_ipv4   = cidr
+      }
+      }, {
+      for cidr in var.lb_access_cidr_blocks : "${cidr}_https" => {
+        from_port   = 443
+        to_port     = 443
+        protocol    = "tcp"
+        description = "Access to HTTPS"
+        cidr_ipv4   = cidr
+      }
+    }
+  )
   security_group_egress_rules = {
     cvm = {
       from_port                    = 0
