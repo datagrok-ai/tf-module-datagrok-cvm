@@ -484,6 +484,17 @@ resource "aws_ecs_service" "jkg" {
   enable_execute_command = true
   force_new_deployment   = true
 
+  placement_constraints {
+    expression = "attribute:type == 'cvm'"
+    type       = "memberOf"
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+
   dynamic "service_registries" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
       {
@@ -524,6 +535,11 @@ resource "aws_ecs_service" "jn" {
   }
   enable_execute_command = true
   force_new_deployment   = true
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
 
   dynamic "service_registries" {
     for_each = var.ecs_launch_type == "FARGATE" ? [
