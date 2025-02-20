@@ -59,7 +59,21 @@ locals {
       }
       priority   = 1
       conditions = [{ path_pattern = { values = ["/notebook/helper/*"] } }]
-    }
+    },
+    chembl = {
+      create_attachment = false
+      backend_protocol  = "TCP"
+      backend_port      = 5432
+      target_type       = aws_ecs_task_definition.chembl.network_mode == "awsvpc" ? "ip" : "instance"
+      health_check = {
+        enabled             = true
+        interval            = 60
+        unhealthy_threshold = 5
+        healthy_threshold   = 3
+        timeout             = 10
+      }
+      priority   = 3
+    },
   }
 }
 
