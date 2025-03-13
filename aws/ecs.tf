@@ -299,7 +299,7 @@ resource "aws_ecs_task_definition" "jkg" {
               capabilities : ["jupyter"]
               isolatesCount: var.jkgIsolatesCount,
               queuePluginSettings = {
-                amqpHost = "rabbitmq.${local.ecs_name}.local"
+                amqpHost = "rabbitmq.datagrok-${var.environment}.local"
                 amqpPassword = var.rabbitmq_password
                 amqpPort     = var.amqpPort
                 amqpUser     = var.rabbitmq_username
