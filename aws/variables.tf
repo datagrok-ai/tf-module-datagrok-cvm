@@ -597,3 +597,49 @@ variable "datlas_api_url" {
   type        = string
   nullable    = false
 }
+
+variable "rabbitmq_name" {
+  type        = string
+  nullable    = false
+  description = "The name of RDS for Datagrok. If it is not specified, the name along with the environment will be used."
+}
+
+variable "rabbitmq_username" {
+  type        = string
+  default     = "user"
+  nullable    = false
+  description = "default user for AmazonMQ"
+}
+
+variable "rabbitmq_password" {
+  type        = string
+  default     = "default-password"
+  nullable    = false
+  description = "default password for AmazonMQ"
+}
+
+variable "private_zone_name" {
+  type     = string
+  nullable = false
+}
+
+variable "pipeKey" {
+  nullable = false
+  default = "test-key"
+}
+variable "jkgIsolatesCount" {
+  nullable = false
+  type = number
+  default = 1
+}
+variable "amqpTLS" {
+  type = bool
+  nullable = false
+  default = false
+}
+
+variable "amqpPort" {
+  nullable = false
+  type = number
+  default = 5671
+}

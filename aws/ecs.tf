@@ -295,15 +295,20 @@ resource "aws_ecs_task_definition" "jkg" {
           name = "GROK_PARAMETERS",
           value = jsonencode(
             {
-              datlasApiUrl : var.datlas_api_url,
-              dbServer : var.db_instance_address,
-              dbPort : var.db_instance_port,
-              db : "datagrok",
-              dbLogin : var.db_dg_login,
-              dbPassword : var.db_dg_password,
-              jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"],
+              jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"]
               capabilities : ["jupyter"]
-          })
+              isolatesCount: var.jkgIsolatesCount,
+              queuePluginSettings = {
+                amqpHost = "rabbitmq.datagrok-${var.environment}.local"
+                amqpPassword = var.rabbitmq_password
+                amqpPort     = var.amqpPort
+                amqpUser     = var.rabbitmq_username
+                tls = var.amqpTLS
+                pipeHost     = "grok_pipe.datagrok.${split("-",var.name)[0]}.${var.environment}.internal"
+                pipeKey      = var.pipeKey
+                maxConcurrentCalls = 4
+              }
+            })
         }
       ]
       logConfiguration = {
