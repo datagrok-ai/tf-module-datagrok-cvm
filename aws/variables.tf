@@ -557,11 +557,6 @@ variable "datlas_api_url" {
   nullable    = false
 }
 
-variable "rabbitmq_name" {
-  type        = string
-  nullable    = false
-  description = "The name of RDS for Datagrok. If it is not specified, the name along with the environment will be used."
-}
 
 variable "rabbitmq_username" {
   type        = string
@@ -577,10 +572,6 @@ variable "rabbitmq_password" {
   description = "default password for AmazonMQ"
 }
 
-variable "private_zone_name" {
-  type     = string
-  nullable = false
-}
 
 variable "pipeKey" {
   nullable = false
