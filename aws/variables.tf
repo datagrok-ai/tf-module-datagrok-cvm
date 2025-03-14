@@ -390,19 +390,6 @@ variable "docker_jkg_tag" {
   description = "Tag from Docker registry for Jupyter Kernel Gateway Docker Image"
 }
 
-variable "docker_jn_image" {
-  type        = string
-  default     = "docker.io/datagrok/jupyter_notebook"
-  nullable    = false
-  description = "Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used."
-}
-
-variable "docker_jn_tag" {
-  type        = string
-  default     = "latest"
-  nullable    = false
-  description = "Tag from Docker registry for Jupyter Notebook Docker Image"
-}
 
 variable "create_cloudwatch_log_group" {
   type        = bool
@@ -484,34 +471,6 @@ variable "jkg_cpu" {
   default     = 1024
   nullable    = false
   description = "Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task."
-}
-
-variable "jn_container_memory_reservation" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container."
-}
-
-variable "jn_container_cpu" {
-  type        = number
-  default     = 256
-  nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container."
-}
-
-variable "jn_memory" {
-  type        = number
-  default     = 2048
-  nullable    = false
-  description = "Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task."
-}
-
-variable "jn_cpu" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task."
 }
 
 variable "bucket_logging" {
@@ -598,11 +557,6 @@ variable "datlas_api_url" {
   nullable    = false
 }
 
-variable "rabbitmq_name" {
-  type        = string
-  nullable    = false
-  description = "The name of RDS for Datagrok. If it is not specified, the name along with the environment will be used."
-}
 
 variable "rabbitmq_username" {
   type        = string
@@ -618,28 +572,24 @@ variable "rabbitmq_password" {
   description = "default password for AmazonMQ"
 }
 
-variable "private_zone_name" {
-  type     = string
-  nullable = false
-}
 
 variable "pipeKey" {
   nullable = false
-  default = "test-key"
+  default  = "test-key"
 }
 variable "jkgIsolatesCount" {
   nullable = false
-  type = number
-  default = 1
+  type     = number
+  default  = 1
 }
 variable "amqpTLS" {
-  type = bool
+  type     = bool
   nullable = false
-  default = false
+  default  = false
 }
 
 variable "amqpPort" {
   nullable = false
-  type = number
-  default = 5671
+  type     = number
+  default  = 5671
 }
