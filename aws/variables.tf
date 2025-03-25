@@ -618,10 +618,6 @@ variable "rabbitmq_password" {
   description = "default password for AmazonMQ"
 }
 
-variable "private_zone_name" {
-  type     = string
-  nullable = false
-}
 
 variable "pipeKey" {
   nullable = false
