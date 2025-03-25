@@ -621,21 +621,21 @@ variable "rabbitmq_password" {
 
 variable "pipeKey" {
   nullable = false
-  default = "test-key"
+  default  = "test-key"
 }
 variable "jkgIsolatesCount" {
   nullable = false
-  type = number
-  default = 1
+  type     = number
+  default  = 1
 }
 variable "amqpTLS" {
-  type = bool
+  type     = bool
   nullable = false
-  default = false
+  default  = false
 }
 
 variable "amqpPort" {
   nullable = false
-  type = number
-  default = 5671
+  type     = number
+  default  = 5671
 }
