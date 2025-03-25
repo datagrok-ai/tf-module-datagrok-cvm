@@ -173,7 +173,6 @@ module "datagrok_cvm" {
 | <a name="input_name"></a> [name](#input\_name) | The name for a stand. It will be used to name resources along with the environment. | `string` | n/a | yes |
 | <a name="input_pipeKey"></a> [pipeKey](#input\_pipeKey) | n/a | `string` | `"test-key"` | no |
 | <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | The IDs of private subnets to place resources. Required if 'vpc\_id' is specified. | `list(string)` | `[]` | no |
-| <a name="input_private_zone_name"></a> [private\_zone\_name](#input\_private\_zone\_name) | n/a | `string` | n/a | yes |
 | <a name="input_public_key"></a> [public\_key](#input\_public\_key) | SSH Public Key to create keypair in AWS and access EC2 instance. If not set key\_pair\_name is required. | `string` | `null` | no |
 | <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | The IDs of public subnets to place resources. Required if 'vpc\_id' is specified. | `list(string)` | `[]` | no |
 | <a name="input_rabbitmq_name"></a> [rabbitmq\_name](#input\_rabbitmq\_name) | The name of RDS for Datagrok. If it is not specified, the name along with the environment will be used. | `string` | n/a | yes |
