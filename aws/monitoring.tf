@@ -105,64 +105,6 @@ resource "aws_cloudwatch_metric_alarm" "jkg_task_count" {
     }
   }
 }
-resource "aws_cloudwatch_metric_alarm" "jn_task_count" {
-  count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights ? 1 : 0
-  alarm_name          = "${local.ecs_name}-jn-task-count"
-  comparison_operator = "LessThanThreshold"
-  threshold           = "1"
-  evaluation_periods  = "2"
-  treat_missing_data  = "ignore"
-  alarm_description   = "This metric monitors ${local.ecs_name} Jupyter Notebook ECS tasks count"
-  alarm_actions = compact([
-    var.monitoring.slack_alerts ?
-    module.notify_slack.slack_topic_arn :
-    "",
-    var.monitoring.email_alerts ?
-    module.sns_topic.sns_topic_arn :
-    "",
-    !var.monitoring.create_sns_topic ?
-    var.monitoring.sns_topic_arn :
-    ""
-  ])
-  tags = local.tags
-
-  metric_query {
-    id          = "expression"
-    expression  = "IF(desired > running, 0, 1)"
-    label       = "Task Failures"
-    return_data = "true"
-  }
-
-  metric_query {
-    id = "desired"
-
-    metric {
-      metric_name = "DesiredTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.jn.name
-      }
-    }
-  }
-
-  metric_query {
-    id = "running"
-
-    metric {
-      metric_name = "RunningTaskCount"
-      namespace   = "ECS/ContainerInsights"
-      period      = "60"
-      stat        = "Average"
-      dimensions = {
-        ClusterName = module.ecs.cluster_name
-        ServiceName = aws_ecs_service.jn.name
-      }
-    }
-  }
-}
 
 resource "aws_cloudwatch_metric_alarm" "instance_count" {
   count               = var.monitoring.alarms_enabled && var.ecs_cluster_insights && var.ecs_launch_type == "EC2" ? 1 : 0

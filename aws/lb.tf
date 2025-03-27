@@ -132,21 +132,6 @@ module "lb_ext" {
         status_code = "HTTP_301"
       }
     }
-    cvm = {
-      port            = 443
-      protocol        = "HTTPS"
-      certificate_arn = try(module.acm[0].acm_certificate_arn, var.acm_cert_arn)
-      action_type     = "fixed-response"
-      fixed_response = {
-        status_code  = 204
-        message_body = "No content. Try other endpoints for the URL: /notebook"
-        content_type = "text/plain"
-      }
-      rules = {
-        for key, value in local.targets :
-        key => { priority = value.priority, actions = [{ type = "forward", target_group_key = key }], conditions = value.conditions }
-      }
-    }
   }
 
   tags = local.tags
@@ -196,22 +181,6 @@ module "lb_int" {
     merge(value, { name = "${local.lb_name}-int-${key}-${random_string.lb_id[key].result}" })
   }
 
-  listeners = {
-    http = {
-      port        = 80
-      protocol    = "HTTP"
-      action_type = "fixed-response"
-      fixed_response = {
-        status_code  = 204
-        message_body = "No content. Try other endpoints for the URL: /notebook"
-        content_type = "text/plain"
-      }
-      rules = {
-        for key, value in local.targets :
-        key => { priority = value.priority, actions = [{ type = "forward", target_group_key = key }], conditions = value.conditions }
-      }
-    }
-  }
 
   tags = local.tags
 }
