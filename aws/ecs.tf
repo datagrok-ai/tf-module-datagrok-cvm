@@ -295,10 +295,7 @@ resource "aws_ecs_task_definition" "jkg" {
           name = "GROK_PARAMETERS",
           value = jsonencode(
             {
-              jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"]
-              capabilities : ["jupyter"]
-              isolatesCount : var.jkgIsolatesCount,
-              queuePluginSettings = {
+              queueSettings = {
                 amqpHost           = "rabbitmq.datagrok-${var.environment}.local"
                 amqpPassword       = var.rabbitmq_password
                 amqpPort           = var.amqpPort

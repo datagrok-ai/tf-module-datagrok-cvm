@@ -591,5 +591,5 @@ variable "amqpTLS" {
 variable "amqpPort" {
   nullable = false
   type     = number
-  default  = 5671
+  default  = 5672
 }
