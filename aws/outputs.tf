@@ -128,12 +128,3 @@ output "route53_external_cloudwatch_log_group_arn" {
   value       = try(aws_cloudwatch_log_group.external[0].arn, "")
 }
 
-output "alb_external_arn" {
-  description = "The ARN of the external Application Load balancer"
-  value       = module.lb_ext.arn
-}
-
-output "alb_internal_arn" {
-  description = "The ARN of the external Application Load balancer"
-  value       = module.lb_int.arn
-}

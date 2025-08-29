@@ -390,20 +390,6 @@ variable "docker_jkg_tag" {
   description = "Tag from Docker registry for Jupyter Kernel Gateway Docker Image"
 }
 
-variable "docker_jn_image" {
-  type        = string
-  default     = "docker.io/datagrok/jupyter_notebook"
-  nullable    = false
-  description = "Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used."
-}
-
-variable "docker_jn_tag" {
-  type        = string
-  default     = "latest"
-  nullable    = false
-  description = "Tag from Docker registry for Jupyter Notebook Docker Image"
-}
-
 variable "create_cloudwatch_log_group" {
   type        = bool
   default     = true
@@ -486,34 +472,6 @@ variable "jkg_cpu" {
   description = "Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task."
 }
 
-variable "jn_container_memory_reservation" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container."
-}
-
-variable "jn_container_cpu" {
-  type        = number
-  default     = 256
-  nullable    = false
-  description = "The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container."
-}
-
-variable "jn_memory" {
-  type        = number
-  default     = 2048
-  nullable    = false
-  description = "Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task."
-}
-
-variable "jn_cpu" {
-  type        = number
-  default     = 512
-  nullable    = false
-  description = "Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task."
-}
-
 variable "bucket_logging" {
   type = object({
     log_bucket        = optional(string)
@@ -560,44 +518,11 @@ variable "ec2_root_volume_size" {
   description = "Specifies volume size for EC2 machine"
 }
 
-variable "db_instance_address" {
-  description = "The address of the Datagrok DB"
-  type        = string
-  nullable    = false
-}
-
-variable "db_instance_port" {
-  description = "The port of the Datagrok DB"
-  type        = number
-  nullable    = false
-}
-
-variable "db_dg_login" {
-  description = "The user to the Datagrok DB"
-  default     = "datagrok"
-  type        = string
-  nullable    = false
-}
-
-variable "db_dg_password" {
-  description = "The password to the Datagrok DB"
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
 variable "jkg_secret" {
   description = "The jupyter kernel gateway secret name"
   type        = string
   nullable    = false
 }
-
-variable "datlas_api_url" {
-  description = "API Url of Datagrok endpoint"
-  type        = string
-  nullable    = false
-}
-
 
 variable "rabbitmq_username" {
   type        = string

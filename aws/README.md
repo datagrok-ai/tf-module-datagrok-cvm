@@ -42,8 +42,6 @@ module "datagrok_cvm" {
 | <a name="module_acm"></a> [acm](#module\_acm) | registry.terraform.io/terraform-aws-modules/acm/aws | ~> 3.5.0 |
 | <a name="module_ecs"></a> [ecs](#module\_ecs) | registry.terraform.io/terraform-aws-modules/ecs/aws | ~> 4.1.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | registry.terraform.io/terraform-aws-modules/kms/aws | ~> 1.1.0 |
-| <a name="module_lb_ext"></a> [lb\_ext](#module\_lb\_ext) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 9.10.0 |
-| <a name="module_lb_int"></a> [lb\_int](#module\_lb\_int) | registry.terraform.io/terraform-aws-modules/alb/aws | ~> 9.10.0 |
 | <a name="module_log_bucket"></a> [log\_bucket](#module\_log\_bucket) | registry.terraform.io/terraform-aws-modules/s3-bucket/aws | ~> 3.3.0 |
 | <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | registry.terraform.io/terraform-aws-modules/notify-slack/aws | ~> 5.4.0 |
 | <a name="module_sg"></a> [sg](#module\_sg) | registry.terraform.io/terraform-aws-modules/security-group/aws | ~> 4.12.0 |
@@ -129,10 +127,7 @@ module "datagrok_cvm" {
 | <a name="input_db_instance_port"></a> [db\_instance\_port](#input\_db\_instance\_port) | The port of the Datagrok DB | `number` | n/a | yes |
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br/>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br/>`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br/>`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br/>`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables<br/>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br/>    create_secret = bool<br/>    password      = optional(string)<br/>    user          = optional(string)<br/>    secret_arn    = optional(string)<br/>  })</pre> | `null` | no |
 | <a name="input_docker_jkg_image"></a> [docker\_jkg\_image](#input\_docker\_jkg\_image) | Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_kernel_gateway"` | no |
-| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no |
-| <a name="input_docker_jn_image"></a> [docker\_jn\_image](#input\_docker\_jn\_image) | Jupyter Notebook Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_notebook"` | no |
-| <a name="input_docker_jn_tag"></a> [docker\_jn\_tag](#input\_docker\_jn\_tag) | Tag from Docker registry for Jupyter Notebook Docker Image | `string` | `"latest"` | no |
-| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
+| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no || <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
 | <a name="input_ec2_public_access"></a> [ec2\_public\_access](#input\_ec2\_public\_access) | Specifies whether CVM EC2 machine should be in public subnet. | `bool` | `false` | no |
@@ -158,10 +153,6 @@ module "datagrok_cvm" {
 | <a name="input_jkg_cpu"></a> [jkg\_cpu](#input\_jkg\_cpu) | Number of cpu units used by the Jupyter Kernel Gateway FARGATE task. The hard limit of CPU units to present for the task. | `number` | `1024` | no |
 | <a name="input_jkg_memory"></a> [jkg\_memory](#input\_jkg\_memory) | Amount (in MiB) of memory used by the Jupyter Kernel Gateway FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `3072` | no |
 | <a name="input_jkg_secret"></a> [jkg\_secret](#input\_jkg\_secret) | The jupyter kernel gateway secret name | `string` | n/a | yes |
-| <a name="input_jn_container_cpu"></a> [jn\_container\_cpu](#input\_jn\_container\_cpu) | The number of cpu units the Amazon ECS container agent reserves for the Jupyter Notebook container. | `number` | `256` | no |
-| <a name="input_jn_container_memory_reservation"></a> [jn\_container\_memory\_reservation](#input\_jn\_container\_memory\_reservation) | The soft limit (in MiB) of memory to reserve for the Jupyter Notebook container. | `number` | `512` | no |
-| <a name="input_jn_cpu"></a> [jn\_cpu](#input\_jn\_cpu) | Number of cpu units used by the Jupyter Notebook FARGATE task. The hard limit of CPU units to present for the task. | `number` | `512` | no |
-| <a name="input_jn_memory"></a> [jn\_memory](#input\_jn\_memory) | Amount (in MiB) of memory used by the Jupyter Notebook FARGATE task. The hard limit of memory (in MiB) to present to the task. | `number` | `2048` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Existing SSH Key Pair name for access to EC2 instance. If not set public\_key is required. | `string` | `null` | no |
 | <a name="input_kms_admins"></a> [kms\_admins](#input\_kms\_admins) | https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-default.html#key-policy-default-allow-administrators | `list(string)` | `null` | no |
 | <a name="input_kms_key"></a> [kms\_key](#input\_kms\_key) | The ID of custom KMS Key to encrypt resources. | `string` | `null` | no |
@@ -196,8 +187,6 @@ module "datagrok_cvm" {
 
 | Name | Description |
 |------|-------------|
-| <a name="output_alb_external_arn"></a> [alb\_external\_arn](#output\_alb\_external\_arn) | The ARN of the external Application Load balancer |
-| <a name="output_alb_internal_arn"></a> [alb\_internal\_arn](#output\_alb\_internal\_arn) | The ARN of the external Application Load balancer |
 | <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log group |
 | <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name) | The name of the CloudWatch Log group |
 | <a name="output_docker_hub_secret"></a> [docker\_hub\_secret](#output\_docker\_hub\_secret) | The ARN of the Secret for Docker Hub Authorisation |

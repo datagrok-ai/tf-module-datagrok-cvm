@@ -20,10 +20,6 @@ locals {
       image = var.docker_jkg_image
       tag   = var.docker_jkg_tag == "latest" ? "${var.docker_jkg_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jkg_tag
     },
-    jupyter_notebook = {
-      image = var.docker_jn_image
-      tag   = var.docker_jn_tag == "latest" ? "${var.docker_jn_tag}-${formatdate("YYYYMMDDhhmmss", timestamp())}" : var.docker_jn_tag
-    },
     "ecs-searchdomain-sidecar-${var.name}-${var.environment}" = {
       image = "docker/ecs-searchdomain-sidecar"
       tag   = "1.0"
@@ -31,36 +27,7 @@ locals {
   }
 
   targets = {
-    jn = {
-      create_attachment = false
-      backend_protocol  = "HTTP"
-      backend_port      = 8889
-      target_type       = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/notebook/api"
-        matcher             = "200"
-      }
-      priority   = 2
-      conditions = [{ path_pattern = { values = ["/notebook/*"] } }]
-    },
-    jnH = {
-      create_attachment = false
-      backend_protocol  = "HTTP"
-      backend_port      = 5005
-      target_type       = aws_ecs_task_definition.jn.network_mode == "awsvpc" ? "ip" : "instance"
-      health_check = {
-        enabled             = true
-        interval            = 60
-        unhealthy_threshold = 5
-        path                = "/notebook/helper/info"
-        matcher             = "200"
-      }
-      priority   = 1
-      conditions = [{ path_pattern = { values = ["/notebook/helper/*"] } }]
-    }
+
   }
 }
 
