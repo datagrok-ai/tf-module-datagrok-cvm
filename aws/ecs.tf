@@ -304,8 +304,8 @@ resource "aws_ecs_task_definition" "jkg" {
                 amqpPort     = var.amqpPort
                 amqpUser     = var.rabbitmq_username
                 tls = var.amqpTLS
-                pipeHost     = "grok_pipe.datagrok.${split("-",var.name)[0]}.${var.environment}.internal"
-                pipeKey      = var.pipeKey
+                pipeHost     = var.pipe_host
+                pipeKey      = var.pipe_key
                 maxConcurrentCalls = 4
               }
             })

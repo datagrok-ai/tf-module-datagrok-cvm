@@ -546,15 +546,22 @@ variable "rabbitmq_password" {
 }
 
 
-variable "pipeKey" {
+variable "pipe_key" {
   nullable = false
   default = "test-key"
 }
+
+variable "pipe_host" {
+  nullable = false
+  default = "grok_pipe"
+}
+
 variable "jkgIsolatesCount" {
   nullable = false
   type = number
   default = 1
 }
+
 variable "amqpTLS" {
   type = bool
   nullable = false
