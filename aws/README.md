@@ -39,7 +39,6 @@ module "datagrok_cvm" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_acm"></a> [acm](#module\_acm) | registry.terraform.io/terraform-aws-modules/acm/aws | ~> 3.5.0 |
 | <a name="module_ecs"></a> [ecs](#module\_ecs) | registry.terraform.io/terraform-aws-modules/ecs/aws | ~> 4.1.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | registry.terraform.io/terraform-aws-modules/kms/aws | ~> 1.1.0 |
 | <a name="module_log_bucket"></a> [log\_bucket](#module\_log\_bucket) | registry.terraform.io/terraform-aws-modules/s3-bucket/aws | ~> 3.3.0 |
@@ -60,15 +59,12 @@ module "datagrok_cvm" {
 | [aws_cloudwatch_metric_alarm.high_ram](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.instance_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.jkg_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.jn_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lb_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lb_target_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_ecr_repository.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_ecr_repository_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository_policy) | resource |
 | [aws_ecs_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
-| [aws_ecs_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_task_definition.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
-| [aws_ecs_task_definition.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_instance_profile.ec2_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_policy.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
@@ -81,15 +77,12 @@ module "datagrok_cvm" {
 | [aws_key_pair.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [aws_kms_ciphertext.slack_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_ciphertext) | resource |
 | [aws_route53_query_log.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_query_log) | resource |
-| [aws_route53_record.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
-| [aws_route53_record.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_route53_zone.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_secretsmanager_secret.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_service_discovery_private_dns_namespace.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) | resource |
 | [aws_service_discovery_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
-| [aws_service_discovery_service.jn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
 | [aws_sns_topic_subscription.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [null_resource.ecr_push](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_pet.this](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
@@ -120,14 +113,10 @@ module "datagrok_cvm" {
 | <a name="input_create_route53_external_zone"></a> [create\_route53\_external\_zone](#input\_create\_route53\_external\_zone) | Specifies if the Route53 external hosted zone for the domain should be created. If not specified some other DNS service should be used instead of Route53 or existing Route53 zone. | `bool` | `true` | no |
 | <a name="input_create_route53_internal_zone"></a> [create\_route53\_internal\_zone](#input\_create\_route53\_internal\_zone) | Specifies if the Route53 internal hosted zone for the domain should be created. If if is set to false route53\_internal\_zone is required | `bool` | `true` | no |
 | <a name="input_custom_kms_key"></a> [custom\_kms\_key](#input\_custom\_kms\_key) | Specifies whether a custom KMS key should be used to encrypt instead of the default. We recommend to set it to true for production stand. | `bool` | `false` | no |
-| <a name="input_datlas_api_url"></a> [datlas\_api\_url](#input\_datlas\_api\_url) | API Url of Datagrok endpoint | `string` | n/a | yes |
-| <a name="input_db_dg_login"></a> [db\_dg\_login](#input\_db\_dg\_login) | The user to the Datagrok DB | `string` | `"datagrok"` | no |
-| <a name="input_db_dg_password"></a> [db\_dg\_password](#input\_db\_dg\_password) | The password to the Datagrok DB | `string` | n/a | yes |
-| <a name="input_db_instance_address"></a> [db\_instance\_address](#input\_db\_instance\_address) | The address of the Datagrok DB | `string` | n/a | yes |
-| <a name="input_db_instance_port"></a> [db\_instance\_port](#input\_db\_instance\_port) | The port of the Datagrok DB | `number` | n/a | yes |
 | <a name="input_docker_hub_credentials"></a> [docker\_hub\_credentials](#input\_docker\_hub\_credentials) | Docker Hub credentials to download images.<br/>`create_secret` - Specifies if new secret with Docker Hub credentials will be created.<br/>`user` - Docker Hub User to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br/>`password` - Docker Hub Token to access Docker Hub and download datagrok images. Can be ommited if `secret_arn` is specified<br/>`secret_arn` - The ARN of AWS Secret which contains Docker Hub Token to access Docker Hub and download datagrok images. If not specified the secret will be created using `user` and `password` variables<br/>Either user(`user`) - password(`password`) pair or AWS Secret ARN (`secret_arn`) should be specified. | <pre>object({<br/>    create_secret = bool<br/>    password      = optional(string)<br/>    user          = optional(string)<br/>    secret_arn    = optional(string)<br/>  })</pre> | `null` | no |
 | <a name="input_docker_jkg_image"></a> [docker\_jkg\_image](#input\_docker\_jkg\_image) | Jupyter Kernel Gateway Docker Image registry location. By default the official image from Docker Hub will be used. | `string` | `"docker.io/datagrok/jupyter_kernel_gateway"` | no |
-| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no || <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
+| <a name="input_docker_jkg_tag"></a> [docker\_jkg\_tag](#input\_docker\_jkg\_tag) | Tag from Docker registry for Jupyter Kernel Gateway Docker Image | `string` | `"latest"` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | This is the name of domain for datagrok endpoint. It is used for the external hosted zone in Route53 and to create ACM certificates. | `string` | `""` | no |
 | <a name="input_ec2_detailed_monitoring_enabled"></a> [ec2\_detailed\_monitoring\_enabled](#input\_ec2\_detailed\_monitoring\_enabled) | Specifies whether Monitoring Insights for EC2 instance are enabled. We recommend to set it to true for production stand. | `bool` | `true` | no |
 | <a name="input_ec2_name"></a> [ec2\_name](#input\_ec2\_name) | The name of Datagrok EC2 instance. If it is not specified, the name along with the environment will be used. | `string` | `null` | no |
 | <a name="input_ec2_public_access"></a> [ec2\_public\_access](#input\_ec2\_public\_access) | Specifies whether CVM EC2 machine should be in public subnet. | `bool` | `false` | no |
