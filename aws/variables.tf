@@ -531,6 +531,13 @@ variable "rabbitmq_username" {
   description = "default user for AmazonMQ"
 }
 
+variable "rabbitmq_name" {
+  type        = string
+  default     = "rabbitmq"
+  nullable    = false
+  description = "Server for AmazonMQ"
+}
+
 variable "rabbitmq_password" {
   type        = string
   default     = "default-password"

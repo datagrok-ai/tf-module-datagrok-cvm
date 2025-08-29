@@ -159,7 +159,6 @@ module "datagrok_cvm" {
 | <a name="input_rabbitmq_username"></a> [rabbitmq\_username](#input\_rabbitmq\_username) | default user for AmazonMQ | `string` | `"user"` | no |
 | <a name="input_root_volume_throughput"></a> [root\_volume\_throughput](#input\_root\_volume\_throughput) | EC2 root volume throughput. | `number` | `null` | no |
 | <a name="input_route53_enabled"></a> [route53\_enabled](#input\_route53\_enabled) | Specifies if the Route53 is used for DNS. | `bool` | `true` | no |
-| <a name="input_route53_internal_zone"></a> [route53\_internal\_zone](#input\_route53\_internal\_zone) | Route53 internal hosted zone ID. If it is not set create\_route53\_internal\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_record_name"></a> [route53\_record\_name](#input\_route53\_record\_name) | This is the name of record in Route53 for Datagrok. If if is not set the name along with environment will be used. | `string` | `null` | no |
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br/>    create = bool<br/>    id     = optional(string)<br/>  })</pre> | <pre>{<br/>  "create": true<br/>}</pre> | no |
 | <a name="input_subject_alternative_names"></a> [subject\_alternative\_names](#input\_subject\_alternative\_names) | List for alternative names for ACM certificate | `list(string)` | `[]` | no |
@@ -192,8 +191,6 @@ module "datagrok_cvm" {
 | <a name="output_r53_record"></a> [r53\_record](#output\_r53\_record) | The Route53 record for a stand. |
 | <a name="output_route53_external_cloudwatch_log_group_arn"></a> [route53\_external\_cloudwatch\_log\_group\_arn](#output\_route53\_external\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log group for External Route53 Zone |
 | <a name="output_route53_external_cloudwatch_log_group_name"></a> [route53\_external\_cloudwatch\_log\_group\_name](#output\_route53\_external\_cloudwatch\_log\_group\_name) | The name of the CloudWatch Log group for External Route53 Zone |
-| <a name="output_route53_external_zone"></a> [route53\_external\_zone](#output\_route53\_external\_zone) | The ID of the Route53 public zone for Datagrok |
-| <a name="output_route53_internal_zone"></a> [route53\_internal\_zone](#output\_route53\_internal\_zone) | The ID of the Route53 internal zone for Datagrok |
 | <a name="output_service_discovery_namespace"></a> [service\_discovery\_namespace](#output\_service\_discovery\_namespace) | The ID of the CloudMap for Datagrok |
 | <a name="output_sns_topic"></a> [sns\_topic](#output\_sns\_topic) | The ARN of the SNS topic from which messages will be sent |
 | <a name="output_sns_topic_name"></a> [sns\_topic\_name](#output\_sns\_topic\_name) | The SNS Topic name of a stand. |
