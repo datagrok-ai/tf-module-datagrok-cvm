@@ -31,7 +31,6 @@ module "datagrok_cvm" {
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0.0 |
-| <a name="provider_aws.datagrok-cloudwatch-r53-external"></a> [aws.datagrok-cloudwatch-r53-external](#provider\_aws.datagrok-cloudwatch-r53-external) | >= 5.0.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | >= 3.2.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | >= 3.4.3 |
 
@@ -52,15 +51,10 @@ module "datagrok_cvm" {
 | Name | Type |
 |------|------|
 | [aws_cloudwatch_log_group.ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_group.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_resource_policy.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_resource_policy) | resource |
-| [aws_cloudwatch_metric_alarm.datagrok_lb_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_ram](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.instance_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.jkg_task_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.lb_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.lb_target_5xx_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_ecr_repository.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_ecr_repository_policy.ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository_policy) | resource |
 | [aws_ecs_service.jkg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
@@ -76,9 +70,6 @@ module "datagrok_cvm" {
 | [aws_instance.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_key_pair.ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [aws_kms_ciphertext.slack_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_ciphertext) | resource |
-| [aws_route53_query_log.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_query_log) | resource |
-| [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
-| [aws_route53_zone.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_secretsmanager_secret.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_service_discovery_private_dns_namespace.datagrok](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) | resource |
@@ -86,13 +77,10 @@ module "datagrok_cvm" {
 | [aws_sns_topic_subscription.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [null_resource.ecr_push](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_pet.this](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
-| [random_string.lb_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [aws_ami.aws_optimized_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
-| [aws_iam_policy_document.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_route53_zone.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 | [aws_secretsmanager_secret.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret) | data source |
 | [aws_secretsmanager_secret_version.jkg_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 
@@ -155,10 +143,12 @@ module "datagrok_cvm" {
 | <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | The IDs of private subnets to place resources. Required if 'vpc\_id' is specified. | `list(string)` | `[]` | no |
 | <a name="input_public_key"></a> [public\_key](#input\_public\_key) | SSH Public Key to create keypair in AWS and access EC2 instance. If not set key\_pair\_name is required. | `string` | `null` | no |
 | <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | The IDs of public subnets to place resources. Required if 'vpc\_id' is specified. | `list(string)` | `[]` | no |
+| <a name="input_rabbitmq_name"></a> [rabbitmq\_name](#input\_rabbitmq\_name) | Server for AmazonMQ | `string` | `"rabbitmq"` | no |
 | <a name="input_rabbitmq_password"></a> [rabbitmq\_password](#input\_rabbitmq\_password) | default password for AmazonMQ | `string` | `"default-password"` | no |
 | <a name="input_rabbitmq_username"></a> [rabbitmq\_username](#input\_rabbitmq\_username) | default user for AmazonMQ | `string` | `"user"` | no |
 | <a name="input_root_volume_throughput"></a> [root\_volume\_throughput](#input\_root\_volume\_throughput) | EC2 root volume throughput. | `number` | `null` | no |
 | <a name="input_route53_enabled"></a> [route53\_enabled](#input\_route53\_enabled) | Specifies if the Route53 is used for DNS. | `bool` | `true` | no |
+| <a name="input_route53_internal_zone"></a> [route53\_internal\_zone](#input\_route53\_internal\_zone) | Route53 internal hosted zone ID. If it is not set create\_route53\_internal\_zone is required to be true | `string` | `null` | no |
 | <a name="input_route53_record_name"></a> [route53\_record\_name](#input\_route53\_record\_name) | This is the name of record in Route53 for Datagrok. If if is not set the name along with environment will be used. | `string` | `null` | no |
 | <a name="input_service_discovery_namespace"></a> [service\_discovery\_namespace](#input\_service\_discovery\_namespace) | Service discovery namespace for FARGATE tasks. Set 'create' to 'true' to create new one. Or set 'create' to 'false' and 'id' to AWS Service Discovery Namespace ID to use the existing one. | <pre>object({<br/>    create = bool<br/>    id     = optional(string)<br/>  })</pre> | <pre>{<br/>  "create": true<br/>}</pre> | no |
 | <a name="input_subject_alternative_names"></a> [subject\_alternative\_names](#input\_subject\_alternative\_names) | List for alternative names for ACM certificate | `list(string)` | `[]` | no |
