@@ -297,18 +297,18 @@ resource "aws_ecs_task_definition" "jkg" {
             {
               jupyterToken : jsondecode(data.aws_secretsmanager_secret_version.jkg_secret.secret_string)["token"]
               capabilities : ["jupyter"]
-              isolatesCount: var.jkgIsolatesCount,
+              isolatesCount : var.jkgIsolatesCount,
               queueSettings = {
-                amqpHost = "rabbitmq.datagrok-${var.environment}.local"
-                amqpPassword = var.rabbitmq_password
-                amqpPort     = var.amqpPort
-                amqpUser     = var.rabbitmq_username
-                tls = var.amqpTLS
-                pipeHost     = var.pipe_host
-                pipeKey      = var.pipe_key
+                amqpHost           = "rabbitmq.datagrok-${var.environment}.local"
+                amqpPassword       = var.rabbitmq_password
+                amqpPort           = var.amqpPort
+                amqpUser           = var.rabbitmq_username
+                tls                = var.amqpTLS
+                pipeHost           = var.pipe_host
+                pipeKey            = var.pipe_key
                 maxConcurrentCalls = 4
               }
-            })
+          })
         }
       ]
       logConfiguration = {
